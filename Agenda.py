@@ -6,10 +6,11 @@ while True:
     print("--- SISTEMA DE AGENDAMENTO DE CORTES---")
     print("1. Agendar novo cliente")
     print("2. Ver agenda")
-    print("3. Sair do sistema")
+    print("3. Cancelar agendamento")      # <-- Nova opção no Menu
+    print("4. Sair do sistema")     # O sair virou a opção 4
 
     # Recebemos a escolha do usuário com (opcao = input("escolher os numeros ou opcoes que coloquei anteriormente"))
-    opcao = input ("Escolha uma opção (1-3): ")
+    opcao = input ("Escolha uma opção (1-4): ")
 
     # se escolher 1: Vamos agendar
     if opcao == "1":
@@ -33,12 +34,34 @@ while True:
             #Esse (for) vai passar por cada agendamento da lista e mostrar na tela
             for item in agenda:
                 print(item)
-            
-    # Se escolher o número 3: Encerra o programa
+        # se escolher a opção 3 vamos cancelar o agendamento
+
     elif opcao == "3":
+        print("\n--- CANCELAR AGENDAMENTO ---")
+        if len(agenda) == 0:
+            print("A agenda está vazia, não a nada para cancelar.")
+        else:
+            # Perguntamos o nome do cliente que quer cancelar
+            nome_cancelar = input("Digite o nome do cliente para cancelar: ")
+            # Agora temos que criar uma variável para controlar se achamos o cliente ou não
+            achou = False
+
+            # Passamos pela lista procurando o nome do cliente agendado
+            for item in agenda:
+                if nome_cancelar in item:
+                    agenda.remove(item)  # <-- aqui o python arranca o cliente da lista!
+                    print(f" Agendamento de {nome_cancelar} foi cancelado com sucesso!")
+                    achou = True
+                    break  # para o "for" assim que acha e remove o cliente
+            if achou == False:
+                print (f"Cliente '{nome_cancelar}' não foi encontrado na agenda.")
+
+
+    # Se escolher o número 4: Encerra o programa
+    elif opcao == "4":
         print ("Saindo do sistema... Bom Descanso")
         break # o break quebra o laço do 'while' e fecha o programa.
     
     else: 
-        print ("Opção inválida! Digite 1, 2 ou 3.")
+        print ("Opção inválida! Digite de 1 a 4.")
 
