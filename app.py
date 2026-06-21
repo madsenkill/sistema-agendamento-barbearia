@@ -10,19 +10,16 @@ def home():
 # Rota 2: A caixinha de correio que recebe os dados do agendamento para salvar
 @app.route('/salvar-agendamento', methods=['POST'])
 def salvar_agendamento():
-    # 1. Pega os dados enviados pelo JavaScript
     dados = request.json
     nome_cliente = dados.get('nome')
     servico_escolhido = dados.get('servico')
+    horario_escolhido = dados.get('horario') # <-- Pegando o horário novo!
 
-    # 2. Abre (ou cria) um arquivo de texto para salvar o agendamento
-    # O modo 'a' significa 'append' (adicionar no final do arquivo sem apagar o que já existe)
+    # Adicionando o horário na gravação do arquivo de texto
     with open('agendamentos.txt', 'a', encoding='utf-8') as arquivo:
-        arquivo.write(f"Cliente: {nome_cliente} | Serviço: {servico_escolhido}\n")
+        arquivo.write(f"Cliente: {nome_cliente} | Serviço: {servico_escolhido} | Horário: {horario_escolhido}\n")
 
-    print(f"🚀 Agendamento salvo com sucesso: {nome_cliente}") # Mostra no terminal do VS Code
-
-    # 3. Responde para o JavaScript dizendo que deu tudo certo!
+    print(f"🚀 Agendamento salvo com sucesso: {nome_cliente} às {horario_escolhido}")
     return jsonify({"status": "sucesso", "mensagem": "Agendamento gravado!"})
 
 if __name__ == '__main__':

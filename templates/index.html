@@ -63,9 +63,15 @@
 
         <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Escolha o Serviço:</label>
         <select id="servico-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-            <option value="Cabelo Masculino (R$ 40,00)">Cabelo Masculino - R$ 40,00</option>
-            <option value="Barba Desenhada (R$ 30,00)">Barba Desenhada - R$ 30,00</option>
-            <option value="Combo Premium (R$ 60,00)">Combo Premium - R$ 60,00</option>
+            <option value="Cabelo Masculino (R$ 25,00)">Cabelo Masculino - R$ 25,00</option>
+            <option value="Barba (R$ 20,00)">Barba  - R$ 20,00</option>
+            <option value="Combo Premium (R$ 40,00)">Combo Premium - R$ 40,00</option>
+        </select>
+        <label style="color: white; display: block; margin-bottom: 5p; text-align: left;">Escolha o horário:</label>
+        <select id="horario-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+            <option value="09:00">09:00</option>
+            <option value="10:00">10:00</option>
+            <option value="11:00">11:00</option>
         </select>
     </div>
 
@@ -75,7 +81,7 @@
         function enviarWhatsApp() {
             var nome = document.getElementById("nome-cliente").value;
             var servico = document.getElementById("servico-escolhido").value;
-
+            var horario = document.getElementById("horario-escolhido").value;
             if (nome.trim() === "") {
                 alert("Por favor, digite seu nome antes de agendar! 😉");
                 return;
@@ -90,14 +96,15 @@
                 },
                 body: JSON.stringify({
                     nome: nome,
-                    servico: servico
+                    servico: servico,
+                    horario: horario // <-- adicionando essa linha aqui!
                 })
             })
             .then(response => response.json())
             .then(data => {
                 // Se o Python respondeu que salvou com sucesso, abrimos o WhatsApp!
                 if (data.status === "sucesso") {
-                    var texto = "Olá! Meu nome é " + nome + " e gostaria de agendar o serviço: " + servico;
+                    var texto = "Olá! Meu nome é " + nome + ", gostaria de agendar o serviço: " + servico + " para o horário das " + horario;
                     var textoCodificado = encodeURIComponent(texto);
                     
                     // Coloque o seu número de telefone real aqui embaixo novamente:
