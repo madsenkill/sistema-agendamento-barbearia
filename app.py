@@ -1,11 +1,26 @@
 from flask import Flask, render_template, request, jsonify
 
+
+def pegar_horarios_ocupados():
+    horarios_ocupados = []
+    with open('agendamentos.txt', 'r', encoding='utf-8') as arquivo:
+        for linha in arquivo:
+            if "Horário:" in linha:
+                partes = linha.split("Horário: ")
+                horario_limpo = partes[1].strip()
+                horarios_ocupados.append(horario_limpo)
+    
+    return horarios_ocupados  # Esse "return" faz a máquina "cuspir" a lista prontinha para quem chamar ela!
 app = Flask(__name__)
 
 # Rota 1: Entrega a página visual para o cliente
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # 1. ligamos a maquina pra descobrir quais horarios estao pegos.
+    ocupados = pegar_horarios_ocupados()
+    
+    # 2. Entregamos o HTML e enviamos a lista junto com o nome 'horarios_bloqueados'
+    return render_template('index.html', horarios_bloqueados=ocupados)
 
 # Rota 2: A caixinha de correio que recebe os dados do agendamento para salvar
 @app.route('/salvar-agendamento', methods=['POST'])

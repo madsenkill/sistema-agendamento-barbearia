@@ -68,18 +68,18 @@
         </select>
         <label style="color: white; display: block; margin-bottom: 5p; text-align: left;">Escolha o horário:</label>
         <select id="horario-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00">18:00</option>
-            <option value="19:00">19:00</option>
-        </select>
+    {% if "09:00" not in horarios_bloqueados %}<option value="09:00">09:00</option>{% endif %}
+    {% if "10:00" not in horarios_bloqueados %}<option value="10:00">10:00</option>{% endif %}
+    {% if "11:00" not in horarios_bloqueados %}<option value="11:00">11:00</option>{% endif %}
+    {% if "12:00" not in horarios_bloqueados %}<option value="12:00">12:00</option>{% endif %}
+    {% if "13:00" not in horarios_bloqueados %}<option value="13:00">13:00</option>{% endif %}
+    {% if "14:00" not in horarios_bloqueados %}<option value="14:00">14:00</option>{% endif %}
+    {% if "15:00" not in horarios_bloqueados %}<option value="15:00">15:00</option>{% endif %}
+    {% if "16:00" not in horarios_bloqueados %}<option value="16:00">16:00</option>{% endif %}
+    {% if "17:00" not in horarios_bloqueados %}<option value="17:00">17:00</option>{% endif %}
+    {% if "18:00" not in horarios_bloqueados %}<option value="18:00">18:00</option>{% endif %}
+    {% if "19:00" not in horarios_bloqueados %}<option value="19:00">19:00</option>{% endif %}
+</select>
     </div>
 
     <!-- Modificamos o seu botão para avisar o JavaScript quando for clicado -->

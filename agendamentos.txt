@@ -1,1 +1,2 @@
 Cliente: Cliente Teste Python | Serviço: Combo Premium (R$ 60,00)
+Cliente: Diego Enzo | Serviço: Cabelo Masculino | Horário: 10:00
