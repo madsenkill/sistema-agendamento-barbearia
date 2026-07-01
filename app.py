@@ -49,10 +49,16 @@ def home():
 @app.route('/salvar-agendamento', methods=['POST'])
 def salvar_agendamento():
     dados = request.json
-    nome_cliente = dados.get('nome')
+    nome_puro = dados.get('nome')
+    whatsapp_cliente = dados.get('whatsapp') # Pegando o zap novo do site
+    
+    # Juntamos os dois para salvar no banco na coluna 'nome' sem quebrar nada!
+    # Vai ficar gravado assim: "Marcelo - (21) 99999-9999"
+    nome_cliente = f"{nome_puro} - {whatsapp_cliente}"
+    
     servico_escolhido = dados.get('servico')
-    horario_escolhido = dados.get('horario') 
-
+    horario_escolhido = dados.get('horario')
+    
     # Ligando o banco de dados
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()

@@ -60,12 +60,23 @@
         
         <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Seu Nome:</label>
         <input id="nome-cliente" type="text" placeholder="Digite seu nome" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none; box-sizing: border-box;">
+        <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Seu WhatsApp:</label>
+        <input id="whatsapp-cliente" type="tel" placeholder="(21) 99999-9999" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none; box-sizing: border-box;">
         <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Escolha o Serviço:</label>
-        <select id="servico-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-            <option value="Cabelo Masculino (R$ 25,00)">Cabelo Masculino - R$ 25,00</option>
-            <option value="Barba (R$ 20,00)">Barba  - R$ 20,00</option>
-            <option value="Combo Premium (R$ 40,00)">Combo Premium - R$ 40,00</option>
-        </select>
+            <select id="servico-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
+                <option value="" disabled selected>Selecione um serviço...</option>
+                
+                <!-- Serviços Avulsos -->
+                <option value="Corte de Cabelo (Sobrancelha Grátis) - R$ 30,00">Corte de Cabelo + Sobrancelha Grátis - R$ 30,00</option>
+                <option value="Corte de 1 Pente - R$ 20,00">Corte de 1 Pente - R$ 20,00</option>
+                <option value="Barba - R$ 20,00">Barba - R$ 20,00</option>
+                <option value="Pezinho (Acabamento) - R$ 10,00">Pezinho (Acabamento) - R$ 10,00</option>
+                <option value="Sobrancelha Avulsa - R$ 10,00">Sobrancelha Avulsa - R$ 10,00</option>
+                
+                <!-- Planos Mensais de Assinatura -->
+                <option value="Plano Mensal (Cortes) - R$ 95,00/mês">Plano Mensal (Cortes Livres) - R$ 95,00/mês</option>
+                <option value="Plano Mensal (Corte + Barba) - R$ 145,00/mês">Plano Mensal (Corte + Barba) - R$ 145,00/mês</option>
+            </select>
         <label style="color: white; display: block; margin-bottom: 5p; text-align: left;">Escolha o horário:</label>
         <select id="horario-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
     {% if "09:00" not in horarios_bloqueados %}<option value="09:00">09:00</option>{% endif %}
@@ -89,6 +100,7 @@
             var nome = document.getElementById("nome-cliente").value;
             var servico = document.getElementById("servico-escolhido").value;
             var horario = document.getElementById("horario-escolhido").value;
+            var whatsapp = document.getElementById("whatsapp-cliente").value;
             if (nome.trim() === "") {
                 alert("Por favor, digite seu nome antes de agendar! 😉");
                 return;
@@ -102,9 +114,10 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    nome: nome,
-                    servico: servico,
-                    horario: horario // <-- adicionando essa linha aqui!
+                nome: nome,
+                whatsapp: whatsapp,
+                servico: servico,
+                horario: horario
                 })
             })
             .then(response => response.json())
