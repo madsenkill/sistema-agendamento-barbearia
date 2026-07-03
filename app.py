@@ -1,18 +1,29 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
 
-# --- Bloco do Banco de Dados entrando antes do app = Flask(--name--) ---
 def iniciar_banco():
+    # 1. Conectamos ou criamos o arquivo do banco de dados
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
+    
+    # 2. Criamos a tabela de agendamentos (agora com a coluna whatsapp separada!)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS agendamentos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT ,
-            nome TEXT NOT NULL,
-            servico TEXT NOT NULL,
-            horario TEXT NOT NULL
+            nome TEXT, 
+            whatsapp TEXT, 
+            servico TEXT, 
+            horario TEXT
         )
     """)
+    
+    # 3. Criamos a tabela VIP de assinantes do plano mensal
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS assinantes (
+            nome TEXT, 
+            whatsapp TEXT
+        )
+    """)
+    
     conexao.commit()
     conexao.close()
     
@@ -49,32 +60,57 @@ def home():
 @app.route('/salvar-agendamento', methods=['POST'])
 def salvar_agendamento():
     dados = request.json
-    nome_puro = dados.get('nome')
-    whatsapp_cliente = dados.get('whatsapp') # Pegando o zap novo do site
-    
-    # Juntamos os dois para salvar no banco na coluna 'nome' sem quebrar nada!
-    # Vai ficar gravado assim: "Marcelo - (21) 99999-9999"
-    nome_cliente = f"{nome_puro} - {whatsapp_cliente}"
-    
+    nome_cliente = dados.get('nome')
+    whatsapp_cliente = dados.get('whatsapp')
     servico_escolhido = dados.get('servico')
     horario_escolhido = dados.get('horario')
-    
-    # Ligando o banco de dados
+
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
     
-    # Usando o comando SQL INSERT INTO para injetar os dados nas colunas certas
-    cursor.execute("""
-        INSERT INTO agendamentos (nome, servico, horario)
-        VALUES (?, ?, ?)
-    """, (nome_cliente, servico_escolhido, horario_escolhido))
+    # Checando se é assinante
+    cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
+    assinante_encontrado = cursor.fetchone()
     
-    # Salvando as alterções e fechando a conexão com segurança
+    # Criamos uma variável para avisar o site
+    eh_assinante = False
+    if assinante_encontrado:
+        print(f"🔥 ATENÇÃO: O cliente {nome_cliente} é ASSINANTE VIP!")
+        eh_assinante = True
+    else:
+        print(f"💰 CLIENTE AVULSO: {nome_cliente}")
+
+    # Salva o agendamento
+    cursor.execute("""
+        INSERT INTO agendamentos (nome, whatsapp, servico, horario) 
+        VALUES (?, ?, ?, ?)
+    """, (nome_cliente, whatsapp_cliente, servico_escolhido, horario_escolhido))
+    
     conexao.commit()
     conexao.close()
-    print(f" Sucesso! {nome_cliente} gravado direto no Banco de Dados!")
     
-    return jsonify({"status": "sucesso", "mensagem": "Agendamento gravado!"})
+    # Enviamos a resposta dizendo se ele é VIP ou não!
+    return jsonify({
+        "status": "sucesso", 
+        "mensagem": "Agendamento gravado!",
+        "vip": eh_assinante,
+        "nome": nome_cliente
+    })
+
+@app.route('/cadastrar-marcelo-vip')
+def cadastrar_marcelo_vip():
+    conexao = sqlite3.connect("barbearia.db")
+    cursor = conexao.cursor()
+    
+    nome_vip = "Marcelo Assinante"
+    whatsapp_vip = "21999999999"
+    
+    # Executamos o comando com os parâmetros na mesma linha para garantir o envio correto
+    cursor.execute("INSERT INTO assinantes (nome, whatsapp) VALUES (?, ?)", (nome_vip, whatsapp_vip))
+    
+    conexao.commit()
+    conexao.close()
+    return f"Sucesso! {nome_vip} adicionado com o número {whatsapp_vip}!"
 
 if __name__ == '__main__':
     import os

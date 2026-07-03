@@ -122,15 +122,16 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Se o Python respondeu que salvou com sucesso, abrimos o WhatsApp!
                 if (data.status === "sucesso") {
-                    var texto = "Olá! Meu nome é " + nome + ", gostaria de agendar o serviço: " + servico + " para o horário das " + horario;
-                    var textoCodificado = encodeURIComponent(texto);
-                    
-                    // Coloque o seu número de telefone real aqui embaixo novamente:
-                    var numeroTelefone = "5521998221859"; 
-
-                    window.open("https://wa.me/" + numeroTelefone + "?text=" + textoCodificado, "_blank");
+                    // Checa se o Python mandou que o cara é VIP
+                    if (data.vip) {
+                        alert("🔥 Agendamento Confirmado, " + data.nome + "!\nSeu plano de assinatura está ATIVO. Valor de hoje: R$ 0,00!");
+                    } else {
+                    alert("✅ Agendamento Gravado com Sucesso!\nTe esperamos no horário marcado.");
+                    }
+                    location.reload(); // Atualiza a página para limpar os campos
+                } else {
+                    alert("Erro ao salvar agendamento.");
                 }
             })
             .catch(error => {
