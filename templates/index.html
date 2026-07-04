@@ -1,135 +1,222 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barbearia Madsen</title>
     <style>
-        /* o Body cuida da página inteira */
+        /* Configurações Globais e Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background-color: #1a1a1a; /* cor de fundo cinza escuro */
-            color: white;   /* cor do texto branca */
-            font-family: Arial, sans-serif;  /* muda a fonte do texto */
-            text-align: center;     /* centraliza o tudo na tela */
-            padding-top: 50px;
+            background-color: #121212; /* Fundo grafite escuro premium */
+            color: #ffffff;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
         
-    /* nessa parte eu configuro os botões */
-    button {
-        background-color: #ffcc00;   /* botão dourado amarelo */
-        color: black;   /* texto do botão preto */
-        border: none;
-        padding: 10px 20px;      /* deixa o botão mais gordinho */
-        font-size: 16px;     
-        font-weight: bold;
-        border-radius: 5px;     /* arrendonda os cantos */
-        cursor: pointer;       /* faz aparecer a mãozinha ao passar o mouse */
-    }
-    
-    /* estilo da caixinha de serviços */
-    .card-servicos {
-        background-color: #2a2a2a;     /* um cinza um pouco mais claro que o fundo */
-        padding: 20px;
-        max-width: 400px;     /* limita a largura da caixinha */
-        margin: 30px auto;    /* centraliza a caixinha na tela e afasta dos elementos */
-        border-radius: 8px;    /* arrendonda os cantos da caixinha */
-        border: 1px solid #ffcc00;   /* cria uma borda dourada fina */
-    }
-    /* Estilo do link do WhatsApp */
+        h1 {
+            color: #ffcc00;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        p {
+            color: #aaaaaa;
+            font-size: 1rem;
+            margin-bottom: 25px;
+            max-width: 400px;
+        }
+        
+        /* Container Principal do Formulário */
+        .card-servicos {
+            background-color: #1e1e1e; /* Cinza intermediário elegante */
+            padding: 25px;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 12px;
+            border: 1px solid #333333;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.3s ease;
+        }
+
+        .card-servicos:focus-within {
+            border-color: #ffcc00; /* Borda brilha em dourado quando o usuário interage */
+        }
+
+        h3 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #ffcc00;
+            padding-bottom: 8px;
+            display: inline-block;
+        }
+
+        /* Estilização dos Elementos do Formulário */
+        label {
+            color: #dddddd;
+            display: block;
+            margin-bottom: 6px;
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 18px;
+            border-radius: 6px;
+            border: 1px solid #444444;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input::placeholder {
+            color: #666666;
+        }
+
+        input:focus, select:focus {
+            border-color: #ffcc00;
+            background-color: #222222;
+            box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+        }
+        
+        /* Botão de Agendamento */
+        button {
+            background-color: #ffcc00;
+            color: #121212;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(255, 204, 0, 0.2);
+            transition: all 0.2s ease;
+            margin-top: 5px;
+        }
+        
+        button:hover {
+            background-color: #e5b800;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(255, 204, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Links utilitários */
         a, a:visited {
-            color: #ffcc00 !important;   /* O !important força o navegador a aceitar o dourado */
+            color: #ffcc00 !important;
             text-decoration: none;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
+            margin-top: 20px;
+            display: inline-block;
         }
 
-        /* Efeito ao passar o mouse por cima do link */
         a:hover {
             text-decoration: underline;
-            color: white !important;      /* Fica branco no hover */
+            color: white !important;
         }
-
     </style>
 </head>
 <body>
 
     <h1>💈 Barbearia Madsen 💈</h1>
-    <p>O melhor corte da região, agende seu horário abaixo:</p>
-    <!-- Nova caixinha para o formulário de agendamento -->
-    <div class="card-servicos" style="margin-top: 20px;">
+    <p>O melhor corte da região. Agende seu horário de forma rápida abaixo:</p>
+
+    <div class="card-servicos">
         <h3>Faça seu Agendamento</h3>
         
-        <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Seu Nome:</label>
-        <input id="nome-cliente" type="text" placeholder="Digite seu nome" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none; box-sizing: border-box;">
-        <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Seu WhatsApp:</label>
-        <input id="whatsapp-cliente" type="tel" placeholder="(21) 99999-9999" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none; box-sizing: border-box;">
-        <label style="color: white; display: block; margin-bottom: 5px; text-align: left;">Escolha o Serviço:</label>
-            <select id="servico-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-                <option value="" disabled selected>Selecione um serviço...</option>
-                
-                <!-- Serviços Avulsos -->
-                <option value="Corte de Cabelo (Sobrancelha Grátis) - R$ 30,00">Corte de Cabelo + Sobrancelha Grátis - R$ 30,00</option>
-                <option value="Corte de 1 Pente - R$ 20,00">Corte de 1 Pente - R$ 20,00</option>
-                <option value="Barba - R$ 20,00">Barba - R$ 20,00</option>
-                <option value="Pezinho (Acabamento) - R$ 10,00">Pezinho (Acabamento) - R$ 10,00</option>
-                <option value="Sobrancelha Avulsa - R$ 10,00">Sobrancelha Avulsa - R$ 10,00</option>
-                
-                <!-- Planos Mensais de Assinatura -->
-                <option value="Plano Mensal (Cortes) - R$ 95,00/mês">Plano Mensal (Cortes Livres) - R$ 95,00/mês</option>
-                <option value="Plano Mensal (Corte + Barba) - R$ 145,00/mês">Plano Mensal (Corte + Barba) - R$ 145,00/mês</option>
-            </select>
-        <label style="color: white; display: block; margin-bottom: 5p; text-align: left;">Escolha o horário:</label>
-        <select id="horario-escolhido" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: none;">
-    {% if "09:00" not in horarios_bloqueados %}<option value="09:00">09:00</option>{% endif %}
-    {% if "10:00" not in horarios_bloqueados %}<option value="10:00">10:00</option>{% endif %}
-    {% if "11:00" not in horarios_bloqueados %}<option value="11:00">11:00</option>{% endif %}
-    {% if "12:00" not in horarios_bloqueados %}<option value="12:00">12:00</option>{% endif %}
-    {% if "13:00" not in horarios_bloqueados %}<option value="13:00">13:00</option>{% endif %}
-    {% if "14:00" not in horarios_bloqueados %}<option value="14:00">14:00</option>{% endif %}
-    {% if "15:00" not in horarios_bloqueados %}<option value="15:00">15:00</option>{% endif %}
-    {% if "16:00" not in horarios_bloqueados %}<option value="16:00">16:00</option>{% endif %}
-    {% if "17:00" not in horarios_bloqueados %}<option value="17:00">17:00</option>{% endif %}
-    {% if "18:00" not in horarios_bloqueados %}<option value="18:00">18:00</option>{% endif %}
-    {% if "19:00" not in horarios_bloqueados %}<option value="19:00">19:00</option>{% endif %}
-</select>
+        <label for="nome-cliente">Seu Nome:</label>
+        <input id="nome-cliente" type="text" placeholder="Digite seu nome">
+        
+        <label for="whatsapp-cliente">Seu WhatsApp:</label>
+        <input id="whatsapp-cliente" type="tel" placeholder="(21) 99999-9999">
+        
+        <label for="servico-escolhido">Escolha o Serviço:</label>
+        <select id="servico-escolhido">
+            <option value="" disabled selected>Selecione um serviço...</option>
+            <option value="Corte de Cabelo (Sobrancelha Grátis) - R$ 30,00">Corte de Cabelo + Sobrancelha Grátis - R$ 30,00</option>
+            <option value="Corte de 1 Pente - R$ 20,00">Corte de 1 Pente - R$ 20,00</option>
+            <option value="Barba - R$ 20,00">Barba - R$ 20,00</option>
+            <option value="Pezinho (Acabamento) - R$ 10,00">Pezinho (Acabamento) - R$ 10,00</option>
+            <option value="Sobrancelha Avulsa - R$ 10,00">Sobrancelha Avulsa - R$ 10,00</option>
+            <option value="Plano Mensal (Cortes) - R$ 95,00/mês">Plano Mensal (Cortes Livres) - R$ 95,00/mês</option>
+            <option value="Plano Mensal (Corte + Barba) - R$ 145,00/mês">Plano Mensal (Corte + Barba) - R$ 145,00/mês</option>
+        </select>
+        
+        <label for="horario-escolhido">Escolha o Horário:</label>
+        <select id="horario-escolhido">
+            {% if "09:00" not in horarios_bloqueados %}<option value="09:00">09:00</option>{% endif %}
+            {% if "10:00" not in horarios_bloqueados %}<option value="10:00">10:00</option>{% endif %}
+            {% if "11:00" not in horarios_bloqueados %}<option value="11:00">11:00</option>{% endif %}
+            {% if "12:00" not in horarios_bloqueados %}<option value="12:00">12:00</option>{% endif %}
+            {% if "13:00" not in horarios_bloqueados %}<option value="13:00">13:00</option>{% endif %}
+            {% if "14:00" not in horarios_bloqueados %}<option value="14:00">14:00</option>{% endif %}
+            {% if "15:00" not in horarios_bloqueados %}<option value="15:00">15:00</option>{% endif %}
+            {% if "16:00" not in horarios_bloqueados %}<option value="16:00">16:00</option>{% endif %}
+            {% if "17:00" not in horarios_bloqueados %}<option value="17:00">17:00</option>{% endif %}
+            {% if "18:00" not in horarios_bloqueados %}<option value="18:00">18:00</option>{% endif %}
+            {% if "19:00" not in horarios_bloqueados %}<option value="19:00">19:00</option>{% endif %}
+        </select>
+
+        <button onclick="enviarWhatsApp()">Agendar Horário</button>
     </div>
 
-    <!-- Modificamos o seu botão para avisar o JavaScript quando for clicado -->
-    <button onclick="enviarWhatsApp()" style="margin-top: 20px;">Agendar Horário</button>
-<script>
+    <script>
         function enviarWhatsApp() {
             var nome = document.getElementById("nome-cliente").value;
             var servico = document.getElementById("servico-escolhido").value;
             var horario = document.getElementById("horario-escolhido").value;
             var whatsapp = document.getElementById("whatsapp-cliente").value;
+            
             if (nome.trim() === "") {
                 alert("Por favor, digite seu nome antes de agendar! 😉");
                 return;
             }
 
-            // --- AQUI ENTRA A CONEXÃO COM O PYTHON ---
-            // Faz uma requisição interna (fetch) enviando o Nome e Serviço para a rota do Python
             fetch('/salvar-agendamento', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                nome: nome,
-                whatsapp: whatsapp,
-                servico: servico,
-                horario: horario
+                    nome: nome,
+                    whatsapp: whatsapp,
+                    servico: servico,
+                    horario: horario
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === "sucesso") {
-                    // Checa se o Python mandou que o cara é VIP
                     if (data.vip) {
                         alert("🔥 Agendamento Confirmado, " + data.nome + "!\nSeu plano de assinatura está ATIVO. Valor de hoje: R$ 0,00!");
                     } else {
-                    alert("✅ Agendamento Gravado com Sucesso!\nTe esperamos no horário marcado.");
+                        alert("✅ Agendamento Gravado com Sucesso!\nTe esperamos no horário marcado.");
                     }
-                    location.reload(); // Atualiza a página para limpar os campos
+                    location.reload();
                 } else {
                     alert("Erro ao salvar agendamento.");
                 }
