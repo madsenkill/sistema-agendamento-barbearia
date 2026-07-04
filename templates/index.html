@@ -216,7 +216,14 @@
                     } else {
                         alert("✅ Agendamento Gravado com Sucesso!\nTe esperamos no horário marcado.");
                     }
-                    location.reload();
+                    
+                    // Monta e redireciona para o WhatsApp
+                    let msg = `Olá! Acabei de agendar um horário.\nNome: ${nome}\nServiço: ${servico}\nHorário: ${horario}h`;
+                    let numeroZap = "5521998221859"; 
+                    let url = `https://wa.me/${numeroZap}?text=${encodeURIComponent(msg)}`;
+                    
+                    window.location.href = url;
+                    
                 } else {
                     alert("Erro ao salvar agendamento.");
                 }
