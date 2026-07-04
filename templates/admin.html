@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Barbearia</title>
+    <title>Painel Administrativo</title>
     <style>
         /* Configurações Globais */
         * {
@@ -108,6 +108,109 @@
             gap: 4px;
         }
 
+        /* Grid de Cards de Métricas */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .metric-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .metric-card h4 {
+            color: #aaa;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-card p {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .metric-card .atendimentos-cor {
+            color: #00ffcc;
+        }
+
+        /* Painel de Bloqueio de Horários */
+        .box-bloqueio {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .box-bloqueio h3 {
+            color: #ffcc00;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .form-bloqueio {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-bloqueio select {
+            flex: 1;
+            padding: 10px;
+            background-color: #121212;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .btn-bloquear {
+            background-color: #ff3333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .lista-bloqueados {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tag-bloqueada {
+            background-color: #2a2a2a;
+            border: 1px solid #ff3333;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-liberar {
+            background: none;
+            border: none;
+            color: #ff3333;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
         /* 📱 RESPONSIVIDADE: O segredo para Celulares */
         @media (max-width: 768px) {
             .header-painel {
@@ -151,10 +254,10 @@
             td:last-child {
                 border-bottom: none;
                 padding-top: 15px;
-                text-align: center; /* Centraliza o botão ou selo no final do card */
+                text-align: center;
             }
 
-           /* Insere o nome do dado do lado esquerdo usando o "data-label" invisível */
+            /* Insere o nome do dado do lado esquerdo usando o "data-label" */
             td::before {
                 content: attr(data-label);
                 position: absolute;
@@ -165,40 +268,6 @@
                 font-size: 0.85rem;
             }
         }
-
-        /* === COLE O CÓDIGO NOVO DAQUI PARA BAIXO === */
-        /* Grid de Cards de Métricas */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .metric-card {
-            background-color: #1e1e1e;
-            border: 1px solid #333;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .metric-card h4 {
-            color: #aaa;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-        .metric-card p {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #ffcc00;
-        }
-        .metric-card .atendimentos-cor {
-            color: #00ffcc;
-        }
-        /* === ATÉ AQUI === */
-
     </style>
 </head>
 <body>
@@ -206,7 +275,9 @@
         <div class="header-painel">
             <h2>💈 Painel de Controle - Agendamentos 💈</h2>
             <a href="/logout" class="btn-logout">Sair do Painel</a>
-        </div> <div class="metrics-grid">
+        </div>
+
+        <div class="metrics-grid">
             <div class="metric-card">
                 <h4>Faturamento Estimado</h4>
                 <p>{{ faturamento }}</p>
@@ -216,6 +287,34 @@
                 <p class="atendimentos-cor">{{ total_atendimentos }}</p>
             </div>
         </div>
+
+        <div class="box-bloqueio">
+            <h3>🔒 Bloquear Novo Horário</h3>
+            <div class="form-bloqueio">
+                <select id="select-horario">
+                    <option value="">Selecione um horário para pausar...</option>
+                    {% for hr in horarios_disponiveis_painel %}
+                        <option value="{{ hr }}">{{ hr }}h</option>
+                    {% endfor %}
+                </select>
+                <button class="btn-bloquear" onclick="bloquearHorario()">Bloquear</button>
+            </div>
+
+            <h3>⚠️ Horários Bloqueados Atualmente:</h3>
+            <div class="lista-bloqueados">
+                {% if horarios_bloqueados_admin %}
+                    {% for hr_bloq in horarios_bloqueados_admin %}
+                        <div class="tag-bloqueada">
+                            ⏰ <b>{{ hr_bloq }}</b>
+                            <button class="btn-liberar" onclick="liberarHorario('{{ hr_bloq }}')">✕</button>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #888; font-size: 0.9rem;">Nenhum horário bloqueado. Todos estão disponíveis para os clientes!</p>
+                {% endif %}
+            </div>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -269,6 +368,49 @@
             })
             .catch(error => {
                 console.error("Erro:", error);
+            });
+        }
+
+        // Funções para Bloquear e Liberar Horários
+        function bloquearHorario() {
+            const campoHorario = document.getElementById('select-horario');
+            const horarioSelecionado = campoHorario.value;
+
+            if (!horarioSelecionado) {
+                alert("Por favor, selecione um horário válido primeiro!");
+                return;
+            }
+
+            fetch('/admin/bloquear-horario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ horario: horarioSelecionado })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "sucesso") { 
+                    location.reload(); 
+                } else { 
+                    alert("Erro ao bloquear: " + data.mensagem); 
+                }
+            });
+        }
+
+        function liberarHorario(horarioParaLiberar) {
+            if (!confirm(`Quer mesmo liberar o horário ${horarioParaLiberar}?`)) return;
+
+            fetch('/admin/liberar-horario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ horario: horarioParaLiberar })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "sucesso") { 
+                    location.reload(); 
+                } else { 
+                    alert("Erro ao liberar: " + data.mensagem); 
+                }
             });
         }
     </script>
