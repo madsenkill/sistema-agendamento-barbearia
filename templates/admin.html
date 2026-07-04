@@ -273,6 +273,10 @@
                 border-bottom: none;
                 padding-top: 15px;
                 text-align: center;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                align-items: center;
             }
 
             /* Insere o nome do dado do lado esquerdo usando o "data-label" */
@@ -356,6 +360,10 @@
                         {% else %}
                             <button class="btn-vip" onclick="tornarVIP('{{ agendamento.nome }}', '{{ agendamento.whatsapp }}')">Tornar VIP</button>
                         {% endif %}
+                        
+                        <button class="btn-bloquear" style="padding: 6px 14px; font-size: 0.85rem; font-weight: bold; border-radius: 4px;" onclick="cancelarAgendamento('{{ agendamento.horario }}')">
+                            Cancelar
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -428,6 +436,25 @@
                     location.reload(); 
                 } else { 
                     alert("Erro ao liberar: " + data.mensagem); 
+                }
+            });
+        }
+
+        // Função para Cancelar Agendamento do Cliente
+        function cancelarAgendamento(horarioAgendado) {
+            if (!confirm(`Tem certeza que deseja cancelar o agendamento das ${horarioAgendado}h? Isso liberará o horário imediatamente.`)) return;
+
+            fetch('/admin/cancelar-agendamento', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ horario: horarioAgendado })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "sucesso") { 
+                    location.reload(); 
+                } else { 
+                    alert("Erro ao cancelar: " + data.mensagem); 
                 }
             });
         }
