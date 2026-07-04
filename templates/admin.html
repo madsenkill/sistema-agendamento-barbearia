@@ -183,6 +183,11 @@
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-bloquear:hover {
+            background-color: #cc0000;
         }
         
         .lista-bloqueados {
@@ -217,6 +222,19 @@
                 flex-direction: column;
                 gap: 15px;
                 text-align: center;
+            }
+
+            /* Correção do formulário de bloqueio no celular */
+            .form-bloqueio {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-bloqueio select,
+            .btn-bloquear {
+                width: 100%;
+                flex: none;
+                padding: 12px;
             }
 
             /* Esconde o cabeçalho original da tabela no celular */
