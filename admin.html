@@ -5,63 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Administrativo - Barbearia</title>
     <style>
+        /* Configurações Globais */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: #121212;
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
             padding: 20px;
         }
-        h2 {
-            color: #ffcc00;
-            text-align: center;
-        }
+
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
+
+        .header-painel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        h2 {
+            color: #ffcc00;
+            font-size: 1.6rem;
+        }
+
+        .btn-logout {
+            background-color: #ff3333;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #cc0000;
+        }
+
+        /* Tabela Padrão (Para PC/Telas Grandes) */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
             background-color: #1e1e1e;
             border-radius: 8px;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
+
         th, td {
-            padding: 12px 15px;
+            padding: 14px 18px;
             text-align: left;
-            border-bottom: #333 1px solid;
+            border-bottom: 1px solid #2d2d2d;
         }
+
         th {
             background-color: #ffcc00;
             color: #121212;
             font-weight: bold;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         tr:hover {
-            background-color: #2a2a2a;
+            background-color: #252525;
         }
+
+        /* Elementos de Ação e Status */
         .btn-vip {
             background-color: #ffcc00;
             color: #121212;
             border: none;
-            padding: 8px 12px;
+            padding: 8px 14px;
             cursor: pointer;
             font-weight: bold;
             border-radius: 4px;
+            transition: all 0.2s;
         }
+
         .btn-vip:hover {
             background-color: #e5b800;
+            transform: scale(1.03);
         }
+
         .selo-vip {
             color: #00ffcc;
             font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 📱 RESPONSIVIDADE: O segredo para Celulares */
+        @media (max-width: 768px) {
+            .header-painel {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            /* Esconde o cabeçalho original da tabela no celular */
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            table {
+                background-color: transparent;
+                box-shadow: none;
+            }
+
+            /* Cada linha da tabela vira um Card separado */
+            tr {
+                background-color: #1e1e1e;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid #333;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            }
+
+            tr:hover {
+                background-color: #1e1e1e;
+            }
+
+            td {
+                text-align: right;
+                padding: 8px 0;
+                border-bottom: 1px solid #2a2a2a;
+                position: relative;
+                font-size: 1rem;
+            }
+
+            td:last-child {
+                border-bottom: none;
+                padding-top: 15px;
+                text-align: center; /* Centraliza o botão ou selo no final do card */
+            }
+
+            /* Insere o nome do dado do lado esquerdo usando o "data-label" invisível */
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                font-weight: bold;
+                color: #ffcc00;
+                text-transform: uppercase;
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>💈 Painel de Controle - Agendamentos 💈</h2>
+        <div class="header-painel">
+            <h2>💈 Painel de Controle - Agendamentos 💈</h2>
+            <a href="/logout" class="btn-logout">Sair do Painel</a>
+        </div>
+
         <table>
             <thead>
                 <tr>
@@ -75,10 +187,10 @@
             <tbody>
                 {% for agendamento in agendamentos %}
                 <tr>
-                    <td>{{ agendamento.nome }}</td>
-                    <td>{{ agendamento.whatsapp }}</td>
-                    <td>{{ agendamento.servico }}</td>
-                    <td>{{ agendamento.horario }}</td>
+                    <td data-label="Cliente">{{ agendamento.nome }}</td>
+                    <td data-label="WhatsApp">{{ agendamento.whatsapp }}</td>
+                    <td data-label="Serviço">{{ agendamento.servico }}</td>
+                    <td data-label="Horário">{{ agendamento.horario }}</td>
                     <td>
                         {% if agendamento.vip %}
                             <span class="selo-vip">🔥 ASSINANTE VIP</span>
@@ -108,7 +220,7 @@
             .then(data => {
                 if (data.status === "sucesso") {
                     alert("🎯 " + data.mensagem);
-                    location.reload(); // Recarrega a página para atualizar o botão para o selo VIP
+                    location.reload();
                 } else {
                     alert("Erro ao tornar VIP: " + data.mensagem);
                 }
