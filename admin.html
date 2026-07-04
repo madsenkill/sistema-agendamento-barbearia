@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Barbearia</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            color: #ffcc00;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: #333 1px solid;
+        }
+        th {
+            background-color: #ffcc00;
+            color: #121212;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #2a2a2a;
+        }
+        .btn-vip {
+            background-color: #ffcc00;
+            color: #121212;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .btn-vip:hover {
+            background-color: #e5b800;
+        }
+        .selo-vip {
+            color: #00ffcc;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💈 Painel de Controle - Agendamentos 💈</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>WhatsApp</th>
+                    <th>Serviço</th>
+                    <th>Horário</th>
+                    <th>Ação / Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agendamento in agendamentos %}
+                <tr>
+                    <td>{{ agendamento.nome }}</td>
+                    <td>{{ agendamento.whatsapp }}</td>
+                    <td>{{ agendamento.servico }}</td>
+                    <td>{{ agendamento.horario }}</td>
+                    <td>
+                        {% if agendamento.vip %}
+                            <span class="selo-vip">🔥 ASSINANTE VIP</span>
+                        {% else %}
+                            <button class="btn-vip" onclick="tornarVIP('{{ agendamento.nome }}', '{{ agendamento.whatsapp }}')">Tornar VIP</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function tornarVIP(nomeCliente, whatsappCliente) {
+            fetch('/admin/tornar-vip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome: nomeCliente,
+                    whatsapp: whatsappCliente
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "sucesso") {
+                    alert("🎯 " + data.mensagem);
+                    location.reload(); // Recarrega a página para atualizar o botão para o selo VIP
+                } else {
+                    alert("Erro ao tornar VIP: " + data.mensagem);
+                }
+            })
+            .catch(error => {
+                console.error("Erro:", error);
+            });
+        }
+    </script>
+</body>
+</html>

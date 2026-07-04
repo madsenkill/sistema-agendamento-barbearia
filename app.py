@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect
 import sqlite3
 
 def iniciar_banco():
@@ -6,7 +6,7 @@ def iniciar_banco():
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
     
-    # 2. Criamos a tabela de agendamentos (agora com a coluna whatsapp separada!)
+    # 2. Criamos a tabela de agendamentos
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS agendamentos (
             nome TEXT, 
@@ -16,13 +16,27 @@ def iniciar_banco():
         )
     """)
     
-    # 3. Criamos a tabela VIP de assinantes do plano mensal
+    # 3. Criamos a tabela VIP de assinantes
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS assinantes (
             nome TEXT, 
             whatsapp TEXT
         )
     """)
+    
+    # 4. Criamos a tabela de administradores para o painel login
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admins (
+            usuario TEXT UNIQUE, 
+            senha TEXT
+        )
+    """)
+    
+    # Inserimos um usuário administrador padrão se ele não existir
+    try:
+        cursor.execute("INSERT OR IGNORE INTO admins (usuario, senha) VALUES (?, ?)", ("admin", "admin123"))
+    except Exception as e:
+        print("Erro ao criar admin padrão:", e)
     
     conexao.commit()
     conexao.close()
@@ -46,6 +60,7 @@ def pegar_horarios_ocupados():
     
     return horarios_ocupados
 app = Flask(__name__)
+app.secret_key = "sua_chave_secreta_aqui_mude_depois" # <- Adicione essa linha aqui!
 
 # Rota 1: Entrega a página visual para o cliente
 @app.route('/')
@@ -111,6 +126,86 @@ def cadastrar_marcelo_vip():
     conexao.commit()
     conexao.close()
     return f"Sucesso! {nome_vip} adicionado com o número {whatsapp_vip}!"
+
+# Rota 3: Tela do Painel Administrativo
+# Rota 3: Tela de Login do Admin
+@app.route('/login', methods=['GET', 'POST'])
+def login_admin():
+    if request.method == 'POST':
+        usuario_digitado = request.form.get('usuario')
+        senha_digitada = request.form.get('senha')
+        
+        conexao = sqlite3.connect("barbearia.db")
+        cursor = conexao.cursor()
+        
+        # Procura o admin no banco
+        cursor.execute("SELECT * FROM admins WHERE usuario = ? AND senha = ?", (usuario_digitado, senha_digitada))
+        admin_valido = cursor.fetchone()
+        conexao.close()
+        
+        if admin_valido:
+            session['admin_logado'] = usuario_digitado # Salva o carimbo na sessão!
+            return redirect('/admin')
+        else:
+            return render_template('login.html', erro="Usuário ou senha incorretos!")
+            
+    return render_template('login.html')
+
+# Rota de Logout para sair do painel com segurança
+@app.route('/logout')
+def logout_admin():
+    session.pop('admin_logado', None) # Remove o carimbo
+    return redirect('/login')
+
+# Rota 3.1: Tela do Painel Administrativo (AGORA PROTEGIDA!)
+@app.route('/admin')
+def painel_admin():
+    # Se o carimbo de login não estiver na sessão, barra o acesso!
+    if 'admin_logado' not in session:
+        return redirect('/login')
+        
+    conexao = sqlite3.connect("barbearia.db")
+    cursor = conexao.cursor()
+    
+    cursor.execute("SELECT nome, whatsapp, servico, horario FROM agendamentos")
+    agendamentos_rows = cursor.fetchall()
+    
+    lista_agendamentos = []
+    for row in agendamentos_rows:
+        cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (row[1],))
+        eh_vip = cursor.fetchone() is not None
+        
+        lista_agendamentos.append({
+            "nome": row[0],
+            "whatsapp": row[1],
+            "servico": row[2],
+            "horario": row[3],
+            "vip": eh_vip
+        })
+        
+    conexao.close()
+    return render_template('admin.html', agendamentos=lista_agendamentos)
+
+# Rota 4: Botão mágico para tornar o cliente VIP direto pelo painel
+@app.route('/admin/tornar-vip', methods=['POST'])
+def tornar_vip_painel():
+    dados = request.json
+    nome_cliente = dados.get('nome')
+    whatsapp_cliente = dados.get('whatsapp')
+    
+    conexao = sqlite3.connect("barbearia.db")
+    cursor = conexao.cursor()
+    
+    try:
+        # Insere o cliente na tabela de assinantes se ele já não estiver lá
+        cursor.execute("INSERT OR IGNORE INTO assinantes (nome, whatsapp) VALUES (?, ?)", (nome_cliente, whatsapp_cliente))
+        conexao.commit()
+        resposta = {"status": "sucesso", "mensagem": f"{nome_cliente} agora é VIP!"}
+    except Exception as e:
+        resposta = {"status": "erro", "mensagem": str(e)}
+        
+    conexao.close()
+    return jsonify(resposta)
 
 if __name__ == '__main__':
     import os
