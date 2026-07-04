@@ -158,9 +158,9 @@ def logout_admin():
     return redirect('/login')
 
 # Rota 3.1: Tela do Painel Administrativo (AGORA PROTEGIDA!)
+# Rota 3.1: Tela do Painel Administrativo (COM FATURAMENTO E MÉTRICAS)
 @app.route('/admin')
 def painel_admin():
-    # Se o carimbo de login não estiver na sessão, barra o acesso!
     if 'admin_logado' not in session:
         return redirect('/login')
         
@@ -171,20 +171,61 @@ def painel_admin():
     agendamentos_rows = cursor.fetchall()
     
     lista_agendamentos = []
+    faturamento_total = 0.0
+    total_atendimentos = 0
+    
     for row in agendamentos_rows:
-        cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (row[1],))
+        nome_cliente = row[0]
+        whatsapp_cliente = row[1]
+        servico_texto = row[2]
+        horario_cliente = row[3]
+        
+        # Verifica se o cliente é assinante VIP
+        cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
         eh_vip = cursor.fetchone() is not None
         
+        # --- LÓGICA DE CÁLCULO DO FATURAMENTO ---
+        valor_servico = 0.0
+        
+        if eh_vip:
+            # Se for VIP, o atendimento individual não gera custo no dia
+            valor_servico = 0.0
+        else:
+            # Se não for VIP, extrai o preço do texto (ex: "Barba - R$ 20,00")
+            try:
+                if "R$" in servico_texto:
+                    # Pega tudo o que vem depois do "R$ " e limpa espaços e vírgulas
+                    partes = servico_texto.split("R$")
+                    valor_str = partes[1].split("/")[0].strip() # Remove o "/mês" se for plano
+                    valor_str = valor_str.replace(",", ".")
+                    valor_servico = float(valor_str)
+            except Exception as e:
+                print(f"Erro ao calcular valor do serviço '{servico_texto}': {e}")
+                valor_servico = 0.0
+        
+        # Somando as métricas do dia
+        faturamento_total += valor_servico
+        total_atendimentos += 1
+        
         lista_agendamentos.append({
-            "nome": row[0],
-            "whatsapp": row[1],
-            "servico": row[2],
-            "horario": row[3],
+            "nome": nome_cliente,
+            "whatsapp": whatsapp_cliente,
+            "servico": servico_texto,
+            "horario": horario_cliente,
             "vip": eh_vip
         })
         
     conexao.close()
-    return render_template('admin.html', agendamentos=lista_agendamentos)
+    
+    # Formata o faturamento para exibir bonitinho como moeda (ex: R$ 150,00)
+    faturamento_formatado = f"R$ {faturamento_total:.2f}".replace(".", ",")
+    
+    return render_template(
+        'admin.html', 
+        agendamentos=lista_agendamentos, 
+        faturamento=faturamento_formatado, 
+        total_atendimentos=total_atendimentos
+    )
 
 # Rota 4: Botão mágico para tornar o cliente VIP direto pelo painel
 @app.route('/admin/tornar-vip', methods=['POST'])

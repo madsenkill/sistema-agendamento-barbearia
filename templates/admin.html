@@ -154,7 +154,7 @@
                 text-align: center; /* Centraliza o botão ou selo no final do card */
             }
 
-            /* Insere o nome do dado do lado esquerdo usando o "data-label" invisível */
+           /* Insere o nome do dado do lado esquerdo usando o "data-label" invisível */
             td::before {
                 content: attr(data-label);
                 position: absolute;
@@ -165,6 +165,40 @@
                 font-size: 0.85rem;
             }
         }
+
+        /* === COLE O CÓDIGO NOVO DAQUI PARA BAIXO === */
+        /* Grid de Cards de Métricas */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .metric-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .metric-card h4 {
+            color: #aaa;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .metric-card p {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        .metric-card .atendimentos-cor {
+            color: #00ffcc;
+        }
+        /* === ATÉ AQUI === */
+
     </style>
 </head>
 <body>
@@ -172,8 +206,16 @@
         <div class="header-painel">
             <h2>💈 Painel de Controle - Agendamentos 💈</h2>
             <a href="/logout" class="btn-logout">Sair do Painel</a>
+        </div> <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>Faturamento Estimado</h4>
+                <p>{{ faturamento }}</p>
+            </div>
+            <div class="metric-card">
+                <h4>Total de Atendimentos</h4>
+                <p class="atendimentos-cor">{{ total_atendimentos }}</p>
+            </div>
         </div>
-
         <table>
             <thead>
                 <tr>
