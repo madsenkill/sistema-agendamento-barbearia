@@ -276,16 +276,16 @@ def bloquear_horario():
 
 @app.route('/admin/cancelar-agendamento', methods=['POST'])
 def cancelar_agendamento():
-    # Verifica se o usuário está logado como admin
-    if 'admin' not in session:
+    # Corrigido: Agora verifica a chave correta 'admin_logado'
+    if 'admin_logado' not in session:
         return jsonify({"status": "erro", "mensagem": "Não autorizado"}), 401
-
+    
     dados = request.get_json()
     horario_cliente = dados.get('horario')
-
+    
     if not horario_cliente:
         return jsonify({"status": "erro", "mensagem": "Horário inválido"}), 400
-
+    
     try:
         conn = sqlite3.connect('barbearia.db')
         cursor = conn.cursor()
