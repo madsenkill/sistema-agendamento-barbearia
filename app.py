@@ -91,37 +91,38 @@ def salvar_agendamento():
     whatsapp_cliente = dados.get('whatsapp')
     servico_escolhido = dados.get('servico')
     horario_escolhido = dados.get('horario')
-    data_escolhida = dados.get('data') # <-- Adicionado aqui
+    data_escolhida = dados.get('data') # <-- ADICIONADO: Pega a data vinda do formulário
 
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
-    
+
     # Checando se é assinante
     cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
     assinante_encontrado = cursor.fetchone()
-    
+
+    # Criamos uma variável para avisar o site
     eh_assinante = False
     if assinante_encontrado:
         print(f"🔥 ATENÇÃO: O cliente {nome_cliente} é ASSINANTE VIP!")
         eh_assinante = True
     else:
-        print(f"💰 CLIENTE AVULSO: {nome_cliente}")
+        print(f"🔹 CLIENTE AVULSO: {nome_cliente}")
 
-    # Salva o agendamento incluindo a coluna 'data'
+    # Salva o agendamento incluindo a coluna DATA
     cursor.execute("""
-        INSERT INTO agendamentos (nome, whatsapp, servico, horario, data) 
+        INSERT INTO agendamentos (nome, whatsapp, servico, data, horario)
         VALUES (?, ?, ?, ?, ?)
-    """, (nome_cliente, whatsapp_cliente, servico_escolhido, horario_escolhido, data_escolhida))
-    
+    """, (nome_cliente, whatsapp_cliente, servico_escolhido, data_escolhida, horario_escolhido))
+
     conexao.commit()
     conexao.close()
-    
+
     return jsonify({
-        "status": "sucesso", 
+        "status": "sucesso",
         "mensagem": "Agendamento gravado!",
         "vip": eh_assinante,
         "nome": nome_cliente,
-        "data": data_escolhida # <-- Adicionado aqui para o WhatsApp receber de volta
+        "data": data_escolhida # <-- Garante o retorno correto para o WhatsApp
     })
 
 @app.route('/cadastrar-marcelo-vip')
