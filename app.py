@@ -1,89 +1,95 @@
-from flask import Flask, render_template, request, jsonify, session, redirect
-import sqlite3
-
-def iniciar_banco():
-    # 1. Conectamos ou criamos o arquivo do banco de dados
-    conexao = sqlite3.connect("barbearia.db")
-    cursor = conexao.cursor()
-    
-    # 2. Criamos a tabela de agendamentos com a coluna 'data'
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agendamentos (
-            nome TEXT, 
-            whatsapp TEXT, 
-            servico TEXT, 
-            horario TEXT,
-            data TEXT
-        )
-    """)
-    
-    # 3. Criamos a tabela VIP de assinantes
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS assinantes (
-            nome TEXT, 
-            whatsapp TEXT
-        )
-    """)
-    
-    # 4. Criamos a tabela de administradores para o painel login
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS admins (
-            usuario TEXT UNIQUE, 
-            senha TEXT
-        )
-    """)
-
-    # === [ALTERAÇÃO 1] Criamos a tabela para gerenciar horários bloqueados pelo admin ===
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS bloqueios (
-            horario TEXT UNIQUE
-        )
-    """)
-    
-    # Inserimos um usuário administrador padrão se ele não existir
-    try:
-        cursor.execute("INSERT OR IGNORE INTO admins (usuario, senha) VALUES (?, ?)", ("admin", "admin123"))
-    except Exception as e:
-        print("Erro ao criar admin padrão:", e)
-    
-    conexao.commit()
-    conexao.close()
-    
-# Executa a criação do banco antes do servidor ligar    
-iniciar_banco()
-
-def pegar_horarios_ocupados():
-    # 1. Ligamos para o banco de dados
-    conexao = sqlite3.connect("barbearia.db")
-    cursor = conexao.cursor()
-    
-    # 2. Puxa horários de agendamentos de clientes
-    cursor.execute("SELECT horario FROM agendamentos")
-    linhas_agendamentos = cursor.fetchall()  
-    
-    # === [ALTERAÇÃO 2] Puxa também os horários que o Admin bloqueou manualmente ===
-    cursor.execute("SELECT horario FROM bloqueios")
-    linhas_bloqueios = cursor.fetchall()
-    
-    conexao.close()
-    
-    # Juntamos tudo na lista de horários indisponíveis para o cliente
-    horarios_ocupados = [linha[0] for linha in linhas_agendamentos]
-    horarios_bloqueados_admin = [linha[0] for linha in linhas_bloqueios]
-    
-    # Retorna a união dos dois (Agendados + Bloqueados)
-    return list(set(horarios_ocupados + horarios_bloqueados_admin))
+from flask import Flask, render_template, request, jsonify, redirect, session
+import pg8000.dbapi
+import re
 
 app = Flask(__name__)
-app.secret_key = "sua_chave_secreta_aqui_mude_depois"
+app.secret_key = 'sua_chave_secreta_super_segura_aqui'
 
-# Rota 1: Entrega a página visual para o cliente
+DATABASE_URL = "postgresql://neondb_owner:npg_rTPwGgzo6Cj8@ep-flat-butterfly-ac5vi3vd.sa-east-1.aws.neon.tech/neondb?sslmode=require"
+
+def conectar_banco():
+    padrao = r"postgresql://(?P<user>[^:]+):(?P<password>[^@]+)@(?P<host>[^/:]+)(?::(?P<port>\d+))?/(?P<database>[^\?]+)"
+    match = re.match(padrao, DATABASE_URL)
+    dados = match.groupdict()
+    
+    return pg8000.dbapi.connect(
+        user=dados['user'],
+        password=dados['password'],
+        host=dados['host'],
+        port=int(dados['port']) if dados['port'] else 5432,
+        database=dados['database'],
+        ssl_context=True
+    )
+
+def inicializar_banco():
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    try:
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS agendamentos (
+                id SERIAL PRIMARY KEY,
+                nome TEXT NOT NULL,
+                whatsapp TEXT NOT NULL,
+                servico TEXT NOT NULL,
+                data TEXT NOT NULL,
+                horario TEXT NOT NULL,
+                valor REAL DEFAULT 0.0,
+                vip INTEGER DEFAULT 0
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS assinantes (
+                id SERIAL PRIMARY KEY,
+                nome TEXT NOT NULL,
+                whatsapp TEXT NOT NULL UNIQUE
+            )
+        ''')
+        conexao.commit()
+    finally:
+        cursor.close()
+        conexao.close()
+
+# Inicializa o banco de dados garantindo encerramento da conexão inicial
+inicializar_banco()
+
 @app.route('/')
-def home():
-    ocupados = pegar_horarios_ocupados()
-    return render_template('index.html', horarios_bloqueados=ocupados)
+def index():
+    return render_template('index.html')
 
-# Rota 2: A caixinha de correio que recebe os dados do agendamento para salvar
+@app.route('/horarios-ocupados', methods=['GET'])
+def horarios_ocupados():
+    data = request.args.get('data')
+    if not data:
+        return jsonify([])
+        
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+    try:
+        cursor.execute("SELECT horario FROM agendamentos WHERE data = %s", (data,))
+        vagas = cursor.fetchall()
+        lista_ocupados = [vaga[0] for vaga in vagas] if vagas else []
+        return jsonify(lista_ocupados)
+    finally:
+        cursor.close()
+        conexao.close()
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        usuario = request.form.get('usuario')
+        senha = request.form.get('senha')
+        if usuario == 'admin' and senha == 'admin123':
+            session['admin_logado'] = True
+            return redirect('/admin')
+        else:
+            return render_template('login.html', erro="Usuário ou senha incorretos!")
+    return render_template('login.html')
+
+@app.route('/sair')
+def sair():
+    session.pop('admin_logado', None)
+    return redirect('/login')
+
 @app.route('/salvar-agendamento', methods=['POST'])
 def salvar_agendamento():
     dados = request.json
@@ -91,240 +97,138 @@ def salvar_agendamento():
     whatsapp_cliente = dados.get('whatsapp')
     servico_escolhido = dados.get('servico')
     horario_escolhido = dados.get('horario')
-    data_escolhida = dados.get('data') # <-- ADICIONADO: Pega a data vinda do formulário
+    data_escolhida = dados.get('data')
 
-    conexao = sqlite3.connect("barbearia.db")
+    conexao = conectar_banco()
     cursor = conexao.cursor()
 
-    # Checando se é assinante
-    cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
-    assinante_encontrado = cursor.fetchone()
+    try:
+        cursor.execute("SELECT id FROM agendamentos WHERE data = %s AND horario = %s", (data_escolhida, horario_escolhido))
+        ja_ocupado = cursor.fetchone()
 
-    # Criamos uma variável para avisar o site
-    eh_assinante = False
-    if assinante_encontrado:
-        print(f"🔥 ATENÇÃO: O cliente {nome_cliente} é ASSINANTE VIP!")
-        eh_assinante = True
-    else:
-        print(f"🔹 CLIENTE AVULSO: {nome_cliente}")
+        if ja_ocupado:
+            return jsonify({"status": "erro", "mensagem": "Este horário já foi preenchido!"}), 400
 
-    # Salva o agendamento incluindo a coluna DATA
-    cursor.execute("""
-        INSERT INTO agendamentos (nome, whatsapp, servico, data, horario)
-        VALUES (?, ?, ?, ?, ?)
-    """, (nome_cliente, whatsapp_cliente, servico_escolhido, data_escolhida, horario_escolhido))
+        valor_corte = 0.0
+        if servico_escolhido:
+            valores_encontrados = re.findall(r"R\$\s*(\d+[\d,.]*)", servico_escolhido)
+            if valores_encontrados:
+                valor_corte = float(valores_encontrados[0].replace(',', '.'))
 
-    conexao.commit()
-    conexao.close()
+        cursor.execute("SELECT id FROM assinantes WHERE whatsapp = %s", (whatsapp_cliente,))
+        assinante_encontrado = cursor.fetchone()
+        eh_assinante = 1 if assinante_encontrado else 0
 
-    return jsonify({
-        "status": "sucesso",
-        "mensagem": "Agendamento gravado!",
-        "vip": eh_assinante,
-        "nome": nome_cliente,
-        "data": data_escolhida # <-- Garante o retorno correto para o WhatsApp
-    })
+        cursor.execute("""
+            INSERT INTO agendamentos (nome, whatsapp, servico, data, horario, valor, vip)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (nome_cliente, whatsapp_cliente, servico_escolhido, data_escolhida, horario_escolhido, valor_corte, eh_assinante))
 
-@app.route('/cadastrar-marcelo-vip')
-def cadastrar_marcelo_vip():
-    conexao = sqlite3.connect("barbearia.db")
-    cursor = conexao.cursor()
-    nome_vip = "Marcelo Assinante"
-    whatsapp_vip = "21999999999"
-    cursor.execute("INSERT INTO assinantes (nome, whatsapp) VALUES (?, ?)", (nome_vip, whatsapp_vip))
-    conexao.commit()
-    conexao.close()
-    return f"Sucesso! {nome_vip} adicionado com o número {whatsapp_vip}!"
+        conexao.commit()
 
-# Rota 3: Tela de Login do Admin
-@app.route('/login', methods=['GET', 'POST'])
-def login_admin():
-    if request.method == 'POST':
-        usuario_digitado = request.form.get('usuario')
-        senha_digitada = request.form.get('senha')
-        
-        conexao = sqlite3.connect("barbearia.db")
-        cursor = conexao.cursor()
-        cursor.execute("SELECT * FROM admins WHERE usuario = ? AND senha = ?", (usuario_digitado, senha_digitada))
-        admin_valido = cursor.fetchone()
+        return jsonify({
+            "status": "sucesso",
+            "mensagem": "Agendamento gravado!",
+            "vip": bool(eh_assinante),
+            "nome": nome_cliente,
+            "data": data_escolhida
+        })
+    finally:
+        cursor.close()
         conexao.close()
-        
-        if admin_valido:
-            session['admin_logado'] = usuario_digitado
-            return redirect('/admin')
-        else:
-            return render_template('login.html', erro="Usuário ou senha incorretos!")
-            
-    return render_template('login.html')
 
-# Rota de Logout para sair do painel com segurança
-@app.route('/logout')
-def logout_admin():
-    session.pop('admin_logado', None)
-    return redirect('/login')
-
-# Rota 3.1: Tela do Painel Administrativo (COM FATURAMENTO, MÉTRICAS E HORÁRIOS)
 @app.route('/admin')
-def painel_admin():
+def admin_painel():
     if 'admin_logado' not in session:
         return redirect('/login')
-        
-    conexao = sqlite3.connect("barbearia.db")
-    cursor = conexao.cursor()
-    
-    # 1. AJUSTADO: Puxa os agendamentos incluindo a nova coluna 'data'
-    cursor.execute("SELECT nome, whatsapp, servico, horario, data FROM agendamentos")
-    agendamentos_rows = cursor.fetchall()
-    
-    lista_agendamentos = []
-    faturamento_total = 0.0
-    total_atendimentos = 0
-    
-    for row in agendamentos_rows:
-        nome_cliente = row[0]
-        whatsapp_cliente = row[1]
-        servico_texto = row[2]
-        horario_cliente = row[3]
-        data_cliente = row[4] # <-- Nova variável capturando o dado do banco
-        
-        cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
-        eh_vip = cursor.fetchone() is not None
-        
-        valor_servico = 0.0
-        if eh_vip:
-            valor_servico = 0.0
-        else:
-            try:
-                if "R$" in servico_texto:
-                    partes = servico_texto.split("R$")
-                    valor_str = partes[1].split("/")[0].strip()
-                    valor_str = valor_str.replace(",", ".")
-                    valor_servico = float(valor_str)
-            except Exception as e:
-                print(f"Erro ao calcular valor do serviço '{servico_texto}': {e}")
-                valor_servico = 0.0
-        
-        faturamento_total += valor_servico
-        total_atendimentos += 1
-        
-        lista_agendamentos.append({
-            "nome": nome_cliente,
-            "whatsapp": whatsapp_cliente,
-            "servico": servico_texto,
-            "horario": horario_cliente,
-            "data": data_cliente if data_cliente else "Não informada", # <-- Enviando para o HTML
-            "vip": eh_vip
-        })
-        
-    # === [ALTERAÇÃO 3] Listagem de horários que já estão bloqueados para gerenciar no painel ===
-    cursor.execute("SELECT horario FROM bloqueios")
-    bloados_rows = cursor.fetchall()
-    lista_bloqueados = [b[0] for b in bloados_rows]
-    
-    conexao.close()
-    
-    faturamento_formatado = f"R$ {faturamento_total:.2f}".replace(".", ",")
-    
-    # Lista de horários padrão que a barbearia atende (para você escolher qual quer bloquear)
-    horarios_padrao_barbearia = [
-        "09:00", "10:00", "11:00", "12:00", "13:00", 
-        "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
-    ]
-    
-    return render_template(
-        'admin.html', 
-        agendamentos=lista_agendamentos, 
-        faturamento=faturamento_formatado, 
-        total_atendimentos=total_atendimentos,
-        horarios_disponiveis_painel=horarios_padrao_barbearia,
-        horarios_bloqueados_admin=lista_bloqueados
-    )
 
-# Rota 4: Botão mágico para tornar o cliente VIP direto pelo painel
-@app.route('/admin/tornar-vip', methods=['POST'])
-def tornar_vip_painel():
-    dados = request.json
-    nome_cliente = dados.get('nome')
-    whatsapp_cliente = dados.get('whatsapp')
-    
-    conexao = sqlite3.connect("barbearia.db")
+    conexao = conectar_banco()
     cursor = conexao.cursor()
+    
     try:
-        cursor.execute("INSERT OR IGNORE INTO assinantes (nome, whatsapp) VALUES (?, ?)", (nome_cliente, whatsapp_cliente))
-        conexao.commit()
-        resposta = {"status": "sucesso", "mensagem": f"{nome_cliente} agora é VIP!"}
-    except Exception as e:
-        resposta = {"status": "erro", "mensagem": str(e)}
-    conexao.close()
-    return jsonify(resposta)
+        cursor.execute("SELECT nome, whatsapp, servico, data, horario, valor, vip FROM agendamentos ORDER BY data, horario")
+        agendamentos_rows = cursor.fetchall()
 
+        lista_agendamentos = []
+        if agendamentos_rows:
+            for row in agendamentos_rows:
+                lista_agendamentos.append({
+                    "nome": row[0],
+                    "whatsapp": row[1],
+                    "servico": row[2],
+                    "data": row[3],
+                    "horario": row[4],
+                    "valor": f"R$ {row[5]:.2f}".replace('.', ','),
+                    "vip": bool(row[6])
+                })
 
-# === [ALTERAÇÃO 4] Novas rotas para Bloquear e Liberar horários através do Painel ===
-@app.route('/admin/bloquear-horario', methods=['POST'])
-def bloquear_horario():
-    if 'admin_logado' not in session:
-        return jsonify({"status": "erro", "mensagem": "Não autorizado"}), 401
-    
-    dados = request.json
-    horario = dados.get('horario')
-    
-    conexao = sqlite3.connect("barbearia.db")
-    cursor = conexao.cursor()
-    try:
-        cursor.execute("INSERT OR IGNORE INTO bloqueios (horario) VALUES (?)", (horario,))
-        conexao.commit()
-        resposta = {"status": "sucesso", "mensagem": f"Horário {horario} bloqueado!"}
-    except Exception as e:
-        resposta = {"status": "erro", "mensagem": str(e)}
-    conexao.close()
-    return jsonify(resposta)
+        cursor.execute("SELECT SUM(valor) FROM agendamentos")
+        resultado_faturamento = cursor.fetchone()
+        faturamento_total = float(resultado_faturamento[0]) if resultado_faturamento and resultado_faturamento[0] is not None else 0.0
+
+        cursor.execute("SELECT COUNT(*) FROM agendamentos")
+        resultado_contagem = cursor.fetchone()
+        total_atendimentos = resultado_contagem[0] if resultado_contagem else 0
+
+        horarios_padrao = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"]
+        horarios_bloqueados = session.get('horarios_bloqueados_admin', [])
+
+        return render_template(
+            "admin.html",
+            agendamentos=lista_agendamentos,
+            faturamento=f"R$ {faturamento_total:.2f}".replace('.', ','),
+            total_atendimentos=total_atendimentos,
+            horarios_disponiveis_painel=horarios_padrao,
+            horarios_bloqueados_admin=horarios_bloqueados
+        )
+    finally:
+        cursor.close()
+        conexao.close()
 
 @app.route('/admin/cancelar-agendamento', methods=['POST'])
 def cancelar_agendamento():
     if 'admin_logado' not in session:
         return jsonify({"status": "erro", "mensagem": "Não autorizado"}), 401
-    
+        
     dados = request.get_json()
     horario_cliente = dados.get('horario')
-    data_cliente = dados.get('data') # <-- Captura a data enviada pelo HTML
+    data_cliente = dados.get('data')
     
-    if not horario_cliente or not data_cliente:
-        return jsonify({"status": "erro", "mensagem": "Dados inválidos para cancelamento"}), 400
-    
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
     try:
-        conn = sqlite3.connect('barbearia.db')
-        cursor = conn.cursor()
-        
-        # CORRIGIDO: Agora deleta combinando Horário E Data específicos!
-        cursor.execute("DELETE FROM agendamentos WHERE horario = ? AND data = ?", (horario_cliente, data_cliente))
-        conn.commit()
-        conn.close()
-        
+        cursor.execute("DELETE FROM agendamentos WHERE horario = %s AND data = %s", (horario_cliente, data_cliente))
+        conexao.commit()
         return jsonify({"status": "sucesso", "mensagem": "Agendamento cancelado com sucesso!"})
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
+    finally:
+        cursor.close()
+        conexao.close()
 
-@app.route('/admin/liberar-horario', methods=['POST'])
-def liberar_horario():
+@app.route('/admin/bloquear-horario', methods=['POST'])
+def bloquear_horario():
     if 'admin_logado' not in session:
         return jsonify({"status": "erro", "mensagem": "Não autorizado"}), 401
-    
-    dados = request.json
+    dados = request.get_json()
     horario = dados.get('horario')
-    
-    conexao = sqlite3.connect("barbearia.db")
-    cursor = conexao.cursor()
-    try:
-        cursor.execute("DELETE FROM bloqueios WHERE horario = ?", (horario,))
-        conexao.commit()
-        resposta = {"status": "sucesso", "mensagem": f"Horário {horario} liberado!"}
-    except Exception as e:
-        resposta = {"status": "erro", "mensagem": str(e)}
-    conexao.close()
-    return jsonify(resposta)
+    horarios_bloqueados = session.get('horarios_bloqueados_admin', [])
+    if horario not in horarios_bloqueados:
+        horarios_bloqueados.append(horario)
+        session['horarios_bloqueados_admin'] = horarios_bloqueados
+    return jsonify({"status": "sucesso", "mensagem": f"Horário {horario} blocked!"})
 
+@app.route('/admin/desbloquear-horario', methods=['POST'])
+def desbloquear_horario():
+    if 'admin_logado' not in session:
+        return jsonify({"status": "erro", "mensagem": "Não autorizado"}), 401
+    dados = request.get_json()
+    horario = dados.get('horario')
+    horarios_bloqueados = session.get('horarios_bloqueados_admin', [])
+    if horario in horarios_bloqueados:
+        horarios_bloqueados.remove(horario)
+        session['horarios_bloqueados_admin'] = horarios_bloqueados
+    return jsonify({"status": "sucesso", "mensagem": f"Horário {horario} liberado!"})
 
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True, use_reloader=False)

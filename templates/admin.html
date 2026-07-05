@@ -3,372 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Administrativo - Barbearia</title>
+    <title>Painel Administrativo - Barbearia Madsen</title>
     <style>
+        :root {
+            --primary: #ffcc00;
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --text-light: #ffffff;
+            --text-muted: #aaa;
+            --danger: #ef5350;
+            --success: #00e676;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             margin: 0;
             padding: 20px;
         }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        h1, h2 {
-            color: #ffcc00;
-            border-bottom: 2px solid #ffcc00;
-            padding-bottom: 10px;
-        }
-        .header-painel {
+
+        .header-admin {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
         }
+
+        h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 2rem;
+        }
+
         .btn-logout {
-            background-color: #d9534f;
-            color: white;
-            padding: 10px 15px;
+            background-color: var(--danger);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
             text-decoration: none;
-            border-radius: 5px;
             font-weight: bold;
+            transition: background-color 0.3s;
         }
+
         .btn-logout:hover {
-            background-color: #c9302c;
+            background-color: #d32f2f;
         }
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+        .dashboard-cards {
+            display: flex;
             gap: 20px;
-            margin-bottom: 30px;
+            max-width: 1200px;
+            margin: 0 auto 40px auto;
         }
+
         .card {
-            background-color: #1e1e1e;
+            flex: 1;
+            background-color: var(--bg-card);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            border-left: 5px solid #ffcc00;
+            border-radius: 12px;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-left: 5px solid var(--primary);
         }
+
         .card h3 {
             margin: 0 0 10px 0;
-            color: #aaaaaa;
+            color: var(--text-muted);
             font-size: 0.9rem;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .card p {
-            margin: 0;
-            font-size: 1.8rem;
+
+        .card .value {
+            font-size: 2rem;
             font-weight: bold;
-            color: #ffffff;
+            margin: 0;
         }
-        .card .highlight {
-            color: #00e676;
+
+        .card .value.faturamento {
+            color: var(--success);
         }
-        
-        /* Estilos da Tabela Geral */
+
+        .section-title {
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .table-container {
+            max-width: 1200px;
+            margin: 0 auto 40px auto;
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            background-color: #1e1e1e;
-            margin-bottom: 40px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 12px 15px;
             text-align: left;
         }
+
         th {
-            background-color: #ffcc00;
-            color: #121212;
+            background-color: var(--primary);
+            color: #000;
+            padding: 15px;
             font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.85rem;
         }
-        tr {
-            border-bottom: 1px solid #2a2a2a;
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #333;
         }
-        tr:last-child {
+
+        tr:last-child td {
             border-bottom: none;
         }
+
         .badge-vip {
-            background-color: #ffcc00;
-            color: #121212;
+            background-color: #7e57c2;
+            color: #fff;
             padding: 3px 8px;
             border-radius: 4px;
+            font-size: 0.75rem;
             font-weight: bold;
-            font-size: 0.75rem;
+            margin-left: 5px;
         }
-        .badge-normal {
-            background-color: #444444;
-            color: #ffffff;
+
+        .badge-avulso {
+            background-color: #555;
+            color: #eee;
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 0.75rem;
+            margin-left: 5px;
         }
-        
+
         .btn-action {
             padding: 6px 12px;
             border: none;
             border-radius: 4px;
-            cursor: pointer;
             font-weight: bold;
-            font-size: 0.8rem;
-            transition: background 0.2s;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: opacity 0.2s;
         }
-        .btn-vip {
-            background-color: #ffcc00;
-            color: #121212;
+
+        .btn-action:hover {
+            opacity: 0.9;
         }
-        .btn-vip:hover {
-            background-color: #e6b800;
-        }
+
         .btn-cancel {
-            background-color: #d9534f;
+            background-color: var(--danger);
             color: white;
-        }
-        .btn-cancel:hover {
-            background-color: #c9302c;
-        }
-        .btn-block {
-            background-color: #ff9800;
-            color: white;
-        }
-        .btn-block:hover {
-            background-color: #e68a00;
-        }
-        .btn-unlock {
-            background-color: #5cb85c;
-            color: white;
-        }
-        .btn-unlock:hover {
-            background-color: #4cae4c;
         }
 
-        .gerenciamento-horarios {
-            background-color: #1e1e1e;
+        /* Seção de Bloqueio de Horários */
+        .grid-horarios {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--bg-card);
             padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 40px;
-        }
-        .lista-botoes-horarios {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .box-horario-painel {
-            background-color: #2a2a2a;
-            padding: 10px;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            min-width: 80px;
-        }
-        .box-horario-painel.bloqueado {
-            border: 1px solid #ff9800;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        /* Responsividade para Celular (Igual aos seus prints) */
+        .box-horario {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #444;
+        }
+
+        .box-horario .hora {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .btn-block {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-block.bloquear {
+            background-color: #ff9800;
+            color: #000;
+        }
+
+        .btn-block.desbloquear {
+            background-color: var(--danger);
+            color: #fff;
+        }
+
         @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            tr {
-                margin-bottom: 15px;
-                background-color: #1e1e1e;
-                border: 1px solid #2a2a2a;
-                border-radius: 8px;
-                padding: 10px;
-            }
-            td {
-                text-align: right;
-                padding: 12px 0 12px 40%;
-                border-bottom: 1px solid #2a2a2a;
-                position: relative;
-                font-size: 0.95rem;
-                word-wrap: break-word;
-                min-height: 45px;
-            }
-            td:last-child {
-                border-bottom: none;
-                padding-top: 15px;
-                padding-left: 0;
-                text-align: center;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-                align-items: center;
-            }
-            td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: 0;
-                top: 12px;
-                font-weight: bold;
-                color: #ffcc00;
-                text-transform: uppercase;
-                font-size: 0.85rem;
-                width: 35%;
-                text-align: left;
-            }
+            .dashboard-cards { flex-direction: column; }
+            table, thead, tbody, th, td, tr { display: block; }
+            thead tr { position: absolute; top: -9999px; left: -9999px; }
+            tr { border: 1px solid #333; margin-bottom: 10px; border-radius: 8px; background: #252525; }
+            td { border: none; border-bottom: 1px solid #333; position: relative; padding-left: 50%; text-align: right; }
+            td:before { position: absolute; top: 15px; left: 15px; width: 45%; padding-right: 10px; white-space: nowrap; text-align: left; font-weight: bold; color: var(--primary); content: attr(data-label); }
+            td:last-child { border-bottom: none; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-painel">
+    <div class="header-admin">
         <h1>Painel Administrativo</h1>
-        <a href="/logout" class="btn-logout">Sair do Painel</a>
+        <a href="/sair" class="btn-logout">Sair do Painel</a>
     </div>
 
-    <div class="metrics">
+    <div class="dashboard-cards">
         <div class="card">
             <h3>Faturamento Estimado</h3>
-            <p class="highlight">{{ faturamento }}</p>
+            <div class="value faturamento">{{ faturamento }}</div>
         </div>
         <div class="card">
             <h3>Total de Atendimentos</h3>
-            <p>{{ total_atendimentos }}</p>
+            <div class="value">{{ total_atendimentos }}</div>
         </div>
     </div>
 
-    <h2>Clientes Agendados</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Cliente</th>
-                <th>WhatsApp</th>
-                <th>Serviço</th>
-                <th>Data</th>
-                <th>Horário</th>
-                <th>Ação / Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for agendamento in agendamentos %}
-            <tr>
-                <td data-label="Cliente">
-                    {{ agendamento.nome }}
-                    {% if agendamento.vip %}
-                        <span class="badge-vip">VIP</span>
-                    {% else %}
-                        <span class="badge-normal">Avulso</span>
-                    {% endif %}
-                </td>
-                <td data-label="WhatsApp">{{ agendamento.whatsapp }}</td>
-                <td data-label="Serviço">{{ agendamento.servico }}</td>
-                <td data-label="Data">{{ agendamento.data }}</td>
-                <td data-label="Horário">{{ agendamento.horario }}</td>
-                <td>
-                    {% if not agendamento.vip %}
-                        <button class="btn-action btn-vip" onclick="tornarVip('{{ agendamento.nome }}', '{{ agendamento.whatsapp }}')">Tornar VIP</button>
-                    {% endif %}
-                    <button class="btn-action btn-cancel" onclick="cancelarAgendamento('{{ agendamento.horario }}', '{{ agendamento.data }}')">Cancelar</button>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" style="text-align: center; color: #aaa; padding: 20px;">Nenhum agendamento realizado até o momento.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="gerenciamento-horarios">
-        <h2>Gerenciar Disponibilidade Diária</h2>
-        <p style="color: #aaa; font-size: 0.9rem; margin: 0;">Bloqueie horários para que clientes comuns não consigam agendar (ex: Horário de Almoço ou Folgas).</p>
-        
-        <div class="lista-botoes-horarios">
-            {% for h in horarios_disponiveis_painel %}
-                {% if h in horarios_bloqueados_admin %}
-                    <div class="box-horario-painel bloqueado">
-                        <span style="font-weight: bold; color: #ff9800;">{{ h }}</span>
-                        <button class="btn-action btn-unlock" onclick="liberarHorario('{{ h }}')">Liberar</button>
-                    </div>
+    <div class="section-title">Clientes Agendados</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>WhatsApp</th>
+                    <th>Serviço</th>
+                    <th>Data</th>
+                    <th>Horário</th>
+                    <th>Valor</th>
+                    <th>Ação / Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agendamento in agendamentos %}
+                <tr>
+                    <td data-label="Cliente">
+                        {{ agendamento.nome }}
+                        {% if agendamento.vip %}
+                            <span class="badge-vip">VIP</span>
+                        {% else %}
+                            <span class="badge-avulso">Avulso</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="WhatsApp">{{ agendamento.whatsapp }}</td>
+                    <td data-label="Serviço">{{ agendamento.servico }}</td>
+                    <td data-label="Data">{{ agendamento.data }}</td>
+                    <td data-label="Horário">{{ agendamento.horario }}</td>
+                    <td data-label="Valor" style="color: var(--success); font-weight: bold;">{{ agendamento.valor }}</td>
+                    <td data-label="Ação / Status">
+                        <button class="btn-action btn-cancel" onclick="cancelarAgendamento('{{ agendamento.horario }}', '{{ agendamento.data }}')">Cancelar</button>
+                    </td>
+                </tr>
                 {% else %}
-                    <div class="box-horario-painel">
-                        <span style="font-weight: bold;">{{ h }}</span>
-                        <button class="btn-action btn-block" onclick="bloquearHorario('{{ h }}')">Bloquear</button>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #aaa; padding: 20px;">Nenhum agendamento realizado até o momento.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</div>
 
-<script>
-function tornarVip(nome, whatsapp) {
-    if(confirm(`Deseja mesmo conceder assinatura VIP para ${nome}?`)) {
-        fetch('/admin/tornar-vip', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ nome: nome, whatsapp: whatsapp })
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.mensagem);
-            location.reload();
-        });
-    }
-}
+    <div class="section-title">Gerenciar Disponibilidade Diária</div>
+    <div class="grid-horarios">
+        {% for hora in horarios_disponiveis_painel %}
+        <div class="box-horario">
+            <span class="hora">{{ hora }}</span>
+            {% if hora in horarios_bloqueados_admin %}
+                <button class="btn-block desbloquear" onclick="desbloquearHorario('{{ hora }}')">Desbloquear</button>
+            {% else %}
+                <button class="btn-block bloquear" onclick="bloquearHorario('{{ hora }}')">Bloquear</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
 
-function cancelarAgendamento(horario, data) {
-    if(confirm(`Tem certeza que deseja cancelar o agendamento de ${data} às ${horario}h? Isso liberará o horário imediatamente.`)) {
-        fetch('/admin/cancelar-agendamento', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ horario: horario, data: data }) // <-- Enviando ambos para o Python
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert(data.mensagem);
-            location.reload();
-        })
-        .catch(err => {
-            alert("Erro ao processar requisição de cancelamento.");
-            console.error(err);
-        });
-    }
-}
+    <script>
+        function cancelarAgendamento(horario, data) {
+            if(confirm(`Tem certeza que deseja cancelar o agendamento de ${data} às ${horario}h? Isso liberará o horário imediatamente.`)) {
+                fetch('/admin/cancelar-agendamento', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ horario: horario, data: data })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.mensagem);
+                    location.reload();
+                })
+                .catch(err => {
+                    alert("Erro ao processar requisição.");
+                    console.error(err);
+                });
+            }
+        }
 
-function bloquearHorario(horario) {
-    fetch('/admin/bloquear-horario', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ horario: horario })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensagem);
-        location.reload();
-    });
-}
+        function bloquearHorario(horario) {
+            fetch('/admin/bloquear-horario', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ horario: horario })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.mensagem);
+                location.reload();
+            });
+        }
 
-function liberarHorario(horario) {
-    fetch('/admin/liberar-horario', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ horario: horario })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensagem);
-        location.reload();
-    });
-}
-</script>
-
+        function desbloquearHorario(horario) {
+            fetch('/admin/desbloquear-horario', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ horario: horario })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.mensagem);
+                location.reload();
+            });
+        }
+    </script>
 </body>
 </html>

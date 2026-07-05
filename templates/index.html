@@ -3,108 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barbearia Madsen</title>
+    <title>Barbearia Madsen - Agendamento</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #121212; color: #ffffff; font-family: system-ui, sans-serif; text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        h1 { color: #ffcc00; font-size: 2.2rem; margin-bottom: 8px; }
-        p { color: #aaaaaa; font-size: 1rem; margin-bottom: 25px; max-width: 400px; }
-        .card-servicos { background-color: #1e1e1e; padding: 25px; width: 100%; max-width: 420px; border-radius: 12px; border: 1px solid #333333; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
-        h3 { color: #ffffff; margin-bottom: 20px; font-size: 1.3rem; border-bottom: 2px solid #ffcc00; padding-bottom: 8px; display: inline-block; }
-        label { color: #dddddd; display: block; margin-bottom: 6px; text-align: left; font-size: 0.9rem; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 18px; border-radius: 6px; border: 1px solid #444444; background-color: #2a2a2a; color: #ffffff; font-size: 1rem; outline: none; }
-        button { background-color: #ffcc00; color: #121212; border: none; width: 100%; padding: 14px; font-size: 1rem; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; margin-top: 5px; }
+        :root {
+            --primary: #ffcc00;
+            --bg-dark: #121212;
+            --bg-card: #1e1e1e;
+            --text-light: #ffffff;
+            --text-muted: #aaa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: var(--text-light);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            text-transform: uppercase;
+        }
+
+        .btn-submit:hover {
+            background-color: #e6b800;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            h1 { font-size: 2rem; }
+            .container { padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
     <h1>💈 Barbearia Madsen 💈</h1>
-    <p>O melhor corte da região. Agende seu horário de forma rápida abaixo:</p>
+    <div class="subtitle">O melhor corte da região. Agende seu horário de forma rápida abaixo:</div>
 
-    <div class="card-servicos">
-        <h3>Faça seu Agendamento</h3>
+    <div class="container">
+        <h2>Faça seu Agendamento</h2>
         
-        <label for="nome-cliente">Seu Nome:</label>
-        <input id="nome-cliente" type="text" placeholder="Digite seu nome">
-        
-        <label for="whatsapp-cliente">Seu WhatsApp:</label>
-        <input id="whatsapp-cliente" type="tel" placeholder="(21) 99999-9999">
+        <form id="form-agendamento">
+            <label for="nome">Seu Nome:</label>
+            <input type="text" id="nome" placeholder="Digite seu nome" required>
 
-        <label for="data-escolhida">Escolha o Dia:</label>
-        <select id="data-escolhida">
-            <option value="Hoje">Hoje</option>
-            <option value="Amanhã">Amanhã</option>
-        </select>
-        
-        <label for="servico-escolhido">Escolha o Serviço:</label>
-        <select id="servico-escolhido">
-            <option value="" disabled selected>Selecione um serviço...</option>
-            <option value="Corte de Cabelo (Sobrancelha Grátis) - R$ 30,00">Corte de Cabelo + Sobrancelha Grátis - R$ 30,00</option>
-            <option value="Corte de 1 Pente - R$ 20,00">Corte de 1 Pente - R$ 20,00</option>
-            <option value="Barba - R$ 20,00">Barba - R$ 20,00</option>
-            <option value="Pezinho (Acabamento) - R$ 10,00">Pezinho (Acabamento) - R$ 10,00</option>
-            <option value="Sobrancelha Avulsa - R$ 10,00">Sobrancelha Avulsa - R$ 10,00</option>
-            <option value="Plano Mensal (Cortes) - R$ 95,00/mês">Plano Mensal (Cortes Livres) - R$ 95,00/mês</option>
-            <option value="Plano Mensal (Corte + Barba) - R$ 145,00/mês">Plano Mensal (Corte + Barba) - R$ 145,00/mês</option>
-        </select>
-        
-        <label for="horario-escolhido">Escolha o Horário:</label>
-        <select id="horario-escolhido">
-            <option value="09:00">09:00</option>
-            <option value="10:00">10:00</option>
-            <option value="11:00">11:00</option>
-            <option value="12:00">12:00</option>
-            <option value="13:00">13:00</option>
-            <option value="14:00">14:00</option>
-            <option value="15:00">15:00</option>
-            <option value="16:00">16:00</option>
-            <option value="17:00">17:00</option>
-            <option value="18:00">18:00</option>
-            <option value="19:00">19:00</option>
-        </select>
+            <label for="whatsapp">Seu WhatsApp:</label>
+            <input type="tel" id="whatsapp" placeholder="(21) 99999-9999" required>
 
-        <button onclick="enviarWhatsApp()">Agendar Horário</button>
+            <label for="data-escolhida">Escolha o Dia:</label>
+            <select id="data-escolhida">
+                </select>
+
+            <label for="servico">Escolha o Serviço:</label>
+            <select id="servico" required>
+                <option value="" disabled selected>Selecione um serviço...</option>
+                <option value="Corte de Cabelo (Sobrancelha Grátis) - R$ 30,00">Corte de Cabelo (Sobrancelha Grátis) - R$ 30,00</option>
+                <option value="Corte de 1 Pente - R$ 20,00">Corte de 1 Pente - R$ 20,00</option>
+                <option value="Barba - R$ 20,00">Barba - R$ 20,00</option>
+                <option value="Combo: Cabelo + Barba - R$ 50,00">Combo: Cabelo + Barba - R$ 50,00</option>
+                <option value="Assinatura Mensal (Só Corte) - R$ 95,00">Assinatura Mensal (Só Corte) - R$ 95,00</option>
+                <option value="Assinatura Mensal (Corte + Barba) - R$ 145,00">Assinatura Mensal (Corte + Barba) - R$ 145,00</option>
+            </select>
+
+            <label for="horario">Escolha o Horário:</label>
+            <select id="horario" required>
+                <option value="09:00">09:00</option>
+                <option value="10:00">10:00</option>
+                <option value="11:00">11:00</option>
+                <option value="12:00">12:00</option>
+                <option value="13:00">13:00</option>
+                <option value="14:00">14:00</option>
+                <option value="15:00">15:00</option>
+                <option value="16:00">16:00</option>
+                <option value="17:00">17:00</option>
+                <option value="18:00">18:00</option>
+                <option value="19:00">19:00</option>
+            </select>
+
+            <button type="submit" class="btn-submit">Agendar Horário</button>
+        </form>
     </div>
 
     <script>
-        function enviarWhatsApp() {
-            var nome = document.getElementById("nome-cliente").value;
-            var servico = document.getElementById("servico-escolhido").value;
-            var horario = document.getElementById("horario-escolhido").value;
-            var data = document.getElementById("data-escolhida").value;
-            var whatsapp = document.getElementById("whatsapp-cliente").value;
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- GERADOR DE DATAS DINÂMICAS (PRÓXIMOS 7 DIAS) ---
+            const seletorData = document.getElementById("data-escolhida");
+            const seletorHorario = document.getElementById("horario");
+            const diasSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
             
-            if (nome.trim() === "") {
-                alert("Por favor, digite seu nome!");
-                return;
+            for (let i = 0; i < 7; i++) {
+                let dataAtual = new Date();
+                dataAtual.setDate(dataAtual.getDate() + i);
+                
+                let diaDoMes = String(dataAtual.getDate()).padStart(2, '0');
+                let mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+                let nomeDia = diasSemana[dataAtual.getDay()];
+                
+                let rotulo = "";
+                if (i === 0) rotulo = `Hoje (${diaDoMes}/${mes})`;
+                else if (i === 1) rotulo = `Amanhã (${diaDoMes}/${mes})`;
+                else rotulo = `${nomeDia} (${diaDoMes}/${mes})`;
+                
+                let opcao = document.createElement("option");
+                opcao.value = rotulo;
+                opcao.textContent = rotulo;
+                seletorData.appendChild(opcao);
             }
 
-            if (!servico) {
-                alert("Por favor, selecione um serviço!");
-                return;
+            // --- FUNÇÃO PARA ESCONDER HORÁRIOS JÁ OCUPADOS ---
+            function atualizarHorariosDisponiveis() {
+                const dataSelecionada = seletorData.value;
+                
+                fetch(`/horarios-ocupados?data=${encodeURIComponent(dataSelecionada)}`)
+                    .then(response => response.json())
+                    .then(horariosOcupados => {
+                        let primeiroDisponivel = null;
+
+                        // Percorre todas as opções de horário para exibir ou ocultar
+                        Array.from(seletorHorario.options).forEach(opcao => {
+                            if (horariosOcupados.includes(opcao.value)) {
+                                opcao.style.display = "none"; // Esconde o horário ocupado
+                                opcao.disabled = true;
+                            } else {
+                                opcao.style.display = "block"; // Mostra o horário livre
+                                opcao.disabled = false;
+                                if (!primeiroDisponivel) {
+                                    primeiroDisponivel = opcao.value;
+                                }
+                            }
+                        });
+
+                        // Reseta o seletor para o primeiro horário livre encontrado para evitar bugs
+                        if (primeiroDisponivel && horariosOcupados.includes(seletorHorario.value)) {
+                            seletorHorario.value = primeiroDisponivel;
+                        }
+                    })
+                    .catch(error => console.error("Erro ao buscar horários ocupados:", error));
             }
 
-            fetch('/salvar-agendamento', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, whatsapp, servico, horario, data })
-            })
-            .then(response => response.json())
-            .then(respostaServidor => {
-                if (respostaServidor.status === "sucesso") {
-                    alert("✅ Agendamento realizado!");
-                    // CORRIGIDO: mudado de ${data} para ${respostaServidor.data} para puxar o texto "Hoje" ou "Amanhã"
-                    let msg = `Olá! Acabei de agendar um horário.\nDia: ${respostaServidor.data}\nHorário: ${horario}h\nServiço: ${servico}\nNome: ${nome}`;
-                    window.location.href = `https://wa.me/5521998221859?text=${encodeURIComponent(msg)}`;
-                } else {
-                    alert("Erro ao salvar agendamento.");
-                }
-            })
-            .catch(err => {
-                alert("Erro de conexão com o servidor.");
-                console.error(err);
+            // Escuta quando o usuário muda a data no menu de opções
+            seletorData.addEventListener("change", atualizarHorariosDisponiveis);
+            
+            // Roda uma vez ao carregar a página para o dia de 'Hoje'
+            atualizarHorariosDisponiveis();
+
+            // --- ENVIO DO FORMULÁRIO ---
+            const form = document.getElementById("form-agendamento");
+            form.addEventListener("submit", function(e) {
+                e.preventDefault();
+
+                const dados = {
+                    nome: document.getElementById("nome").value,
+                    whatsapp: document.getElementById("whatsapp").value,
+                    data: document.getElementById("data-escolhida").value,
+                    servico: document.getElementById("servico").value,
+                    horario: document.getElementById("horario").value
+                };
+
+                fetch('/salvar-agendamento', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dados)
+                })
+                .then(response => {
+                    // Trata as respostas com erro antes de ir para o json()
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === "sucesso") {
+                        alert("Agendamento realizado com sucesso!");
+                        
+                        let msgVip = data.vip ? "\n\n🔥 *Identificado Status de Assinante VIP!*" : "";
+                        
+                        let textoZap = `Olá! Gostaria de confirmar meu agendamento na Barbearia Madsen.\n\n` +
+                                       `👤 *Nome:* ${data.nome}\n` +
+                                       `📅 *Data:* ${data.data}\n` +
+                                       `⏰ *Horário:* ${dados.horario}\n` +
+                                       `💈 *Serviço:* ${dados.servico}${msgVip}`;
+                        
+                        let urlFormatada = `https://wa.me/5521990422634?text=${encodeURIComponent(textoZap)}`;
+                        window.location.href = urlFormatada;
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro:", error);
+                    // Exibe o erro real vindo da trava do back-end ou o erro de conexão padrão
+                    if (error.mensagem) {
+                        alert("Não foi possível agendar: " + error.mensagem);
+                    } else {
+                        alert("Erro de comunicação com o servidor.");
+                    }
+                    // Atualiza a lista visual imediatamente para sumir com o horário sumido
+                    atualizarHorariosDisponiveis();
+                });
             });
-        }
+        });
     </script>
 </body>
 </html>
