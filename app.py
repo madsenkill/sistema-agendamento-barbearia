@@ -6,13 +6,14 @@ def iniciar_banco():
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
     
-    # 2. Criamos a tabela de agendamentos
+    # 2. Criamos a tabela de agendamentos com a coluna 'data'
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS agendamentos (
             nome TEXT, 
             whatsapp TEXT, 
             servico TEXT, 
-            horario TEXT
+            horario TEXT,
+            data TEXT
         )
     """)
     
@@ -90,6 +91,7 @@ def salvar_agendamento():
     whatsapp_cliente = dados.get('whatsapp')
     servico_escolhido = dados.get('servico')
     horario_escolhido = dados.get('horario')
+    data_escolhida = dados.get('data') # <-- Adicionado aqui
 
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
@@ -98,7 +100,6 @@ def salvar_agendamento():
     cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
     assinante_encontrado = cursor.fetchone()
     
-    # Criamos uma variável para avisar o site
     eh_assinante = False
     if assinante_encontrado:
         print(f"🔥 ATENÇÃO: O cliente {nome_cliente} é ASSINANTE VIP!")
@@ -106,11 +107,11 @@ def salvar_agendamento():
     else:
         print(f"💰 CLIENTE AVULSO: {nome_cliente}")
 
-    # Salva o agendamento
+    # Salva o agendamento incluindo a coluna 'data'
     cursor.execute("""
-        INSERT INTO agendamentos (nome, whatsapp, servico, horario) 
-        VALUES (?, ?, ?, ?)
-    """, (nome_cliente, whatsapp_cliente, servico_escolhido, horario_escolhido))
+        INSERT INTO agendamentos (nome, whatsapp, servico, horario, data) 
+        VALUES (?, ?, ?, ?, ?)
+    """, (nome_cliente, whatsapp_cliente, servico_escolhido, horario_escolhido, data_escolhida))
     
     conexao.commit()
     conexao.close()
@@ -119,7 +120,8 @@ def salvar_agendamento():
         "status": "sucesso", 
         "mensagem": "Agendamento gravado!",
         "vip": eh_assinante,
-        "nome": nome_cliente
+        "nome": nome_cliente,
+        "data": data_escolhida # <-- Adicionado aqui para o WhatsApp receber de volta
     })
 
 @app.route('/cadastrar-marcelo-vip')
@@ -169,8 +171,8 @@ def painel_admin():
     conexao = sqlite3.connect("barbearia.db")
     cursor = conexao.cursor()
     
-    # 1. Puxa os agendamentos
-    cursor.execute("SELECT nome, whatsapp, servico, horario FROM agendamentos")
+    # 1. AJUSTADO: Puxa os agendamentos incluindo a nova coluna 'data'
+    cursor.execute("SELECT nome, whatsapp, servico, horario, data FROM agendamentos")
     agendamentos_rows = cursor.fetchall()
     
     lista_agendamentos = []
@@ -182,6 +184,7 @@ def painel_admin():
         whatsapp_cliente = row[1]
         servico_texto = row[2]
         horario_cliente = row[3]
+        data_cliente = row[4] # <-- Nova variável capturando o dado do banco
         
         cursor.execute("SELECT * FROM assinantes WHERE whatsapp = ?", (whatsapp_cliente,))
         eh_vip = cursor.fetchone() is not None
@@ -208,13 +211,14 @@ def painel_admin():
             "whatsapp": whatsapp_cliente,
             "servico": servico_texto,
             "horario": horario_cliente,
+            "data": data_cliente if data_cliente else "Não informada", # <-- Enviando para o HTML
             "vip": eh_vip
         })
         
     # === [ALTERAÇÃO 3] Listagem de horários que já estão bloqueados para gerenciar no painel ===
     cursor.execute("SELECT horario FROM bloqueios")
-    bloqueados_rows = cursor.fetchall()
-    lista_bloqueados = [b[0] for b in bloqueados_rows]
+    bloados_rows = cursor.fetchall()
+    lista_bloqueados = [b[0] for b in bloados_rows]
     
     conexao.close()
     
@@ -276,22 +280,22 @@ def bloquear_horario():
 
 @app.route('/admin/cancelar-agendamento', methods=['POST'])
 def cancelar_agendamento():
-    # Corrigido: Agora verifica a chave correta 'admin_logado'
     if 'admin_logado' not in session:
         return jsonify({"status": "erro", "mensagem": "Não autorizado"}), 401
     
     dados = request.get_json()
     horario_cliente = dados.get('horario')
+    data_cliente = dados.get('data') # <-- Captura a data enviada pelo HTML
     
-    if not horario_cliente:
-        return jsonify({"status": "erro", "mensagem": "Horário inválido"}), 400
+    if not horario_cliente or not data_cliente:
+        return jsonify({"status": "erro", "mensagem": "Dados inválidos para cancelamento"}), 400
     
     try:
         conn = sqlite3.connect('barbearia.db')
         cursor = conn.cursor()
         
-        # Deleta o agendamento daquele horário específico
-        cursor.execute("DELETE FROM agendamentos WHERE horario = ?", (horario_cliente,))
+        # CORRIGIDO: Agora deleta combinando Horário E Data específicos!
+        cursor.execute("DELETE FROM agendamentos WHERE horario = ? AND data = ?", (horario_cliente, data_cliente))
         conn.commit()
         conn.close()
         
