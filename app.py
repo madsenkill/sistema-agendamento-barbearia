@@ -5,7 +5,7 @@ import re
 import os
 
 app = Flask(__name__)
-load_dotenv()
+load_dotenv(.env)
 
 app.secret_key = 'sua_chave_secreta_super_segura_aqui'
 
