@@ -1,11 +1,16 @@
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, redirect, session
 import pg8000.dbapi
 import re
+import os
 
 app = Flask(__name__)
+load_dotenv()
+
 app.secret_key = 'sua_chave_secreta_super_segura_aqui'
 
-DATABASE_URL = "postgresql://neondb_owner:npg_rTPwGgzo6Cj8@ep-flat-butterfly-ac5vi3vd.sa-east-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL = os.getenv("DATABASE_URL")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 def conectar_banco():
     padrao = r"postgresql://(?P<user>[^:]+):(?P<password>[^@]+)@(?P<host>[^/:]+)(?::(?P<port>\d+))?/(?P<database>[^\?]+)"
@@ -78,7 +83,7 @@ def login():
     if request.method == 'POST':
         usuario = request.form.get('usuario')
         senha = request.form.get('senha')
-        if usuario == 'admin' and senha == 'admin123':
+        if usuario == 'admin' and senha == 'ADMIN_PASSWORD':
             session['admin_logado'] = True
             return redirect('/admin')
         else:
